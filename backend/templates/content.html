@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>{{ content.title }}</h1>
+<p>{{ content.body }}</p>
+
+<p>
+    Author: {{ content.author }} <br>
+    Tags: {{ content.tags }}
+</p>
+{% endblock %}

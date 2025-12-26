@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CMS Home</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<header style="padding:15px;border-bottom:1px solid #ddd;">
+    <h1>My CMS</h1>
+    <a href="/admin/dashboard">Admin Dashboard</a>
+</header>
+
+<main style="padding:20px;">
+    <h2>Published Content</h2>
+
+    {% if contents %}
+        <ul>
+        {% for content in contents %}
+            <li style="margin-bottom:20px;">
+                <h3>{{ content.title or "Untitled" }}</h3>
+
+                {% if content.body %}
+                    <p>
+                        {{ content.body[:150] }}
+                        {% if content.body|length > 150 %}...{% endif %}
+                    </p>
+                {% else %}
+                    <p><em>No content body</em></p>
+                {% endif %}
+
+                <p>
+                    <small>
+                        Author: {{ content.author or "Unknown" }} |
+                        Tags:
+                        {% if content.tags %}
+                            {{ content.tags | join(", ") }}
+                        {% else %}
+                            None
+                        {% endif %}
+                    </small>
+                </p>
+
+                <a href="/content/{{ content._id }}">View Details</a>
+            </li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No content available.</p>
+    {% endif %}
+</main>
+
+<footer style="padding:10px;border-top:1px solid #ddd;text-align:center;">
+    © 2025 My CMS
+</footer>
+
+</body>
+</html>
+
+

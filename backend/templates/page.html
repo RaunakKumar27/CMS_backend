@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ content.title }}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<article class="content-page">
+
+    <!-- 1️⃣ TITLE -->
+    <h1 class="title">{{ content.title }}</h1>
+
+    <!-- 2️⃣ BODY TEXT -->
+    <div class="body">
+        {{ content.body | safe }}
+    </div>
+
+    <!-- 3️⃣ TAGS -->
+    {% if content.tags %}
+        <div class="tags">
+            {% for tag in content.tags %}
+                <span class="tag">{{ tag }}</span>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- 4️⃣ DATE -->
+{% if content.created_at %}
+    <p class="date">
+        {{ content.created_at.strftime('%d %b %Y') }}
+    </p>
+{% endif %}
+
+<!-- AUTHOR -->
+{% if content.author %}
+    <p class="author">
+        By {{ content.author }}
+    </p>
+{% endif %}
+
+
+  
+
+</body>
+</html>
+

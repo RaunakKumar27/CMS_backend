@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ content.title }}</title>
+    <style>
+        body {
+            font-family: Arial;
+            margin: 40px;
+        }
+        .tags {
+            color: gray;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>{{ content.title }}</h1>
+
+    <p><strong>Author:</strong> {{ content.author }}</p>
+
+    <p>{{ content.body }}</p>
+
+    <p class="tags">
+        <strong>Tags:</strong>
+        {% for tag in content.tags %}
+            {{ tag }}
+        {% endfor %}
+    </p>
+
+</body>
+</html>
+

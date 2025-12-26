@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>All Content</title>
+</head>
+<body>
+
+<h2>All Content</h2>
+
+<a href="/admin/dashboard">⬅ Back to Dashboard</a>
+<br><br>
+
+<a href="/admin/content/new">➕ Create New Content</a>
+
+<hr>
+
+{% if contents %}
+    <ul>
+        {% for content in contents %}
+            <li>
+                <strong>{{ content.title }}</strong><br>
+                Author: {{ content.author }}<br>
+
+                <a href="/admin/content/{{ content._id }}/edit">✏ Edit</a>
+
+                <form action="/admin/content/{{ content._id }}/delete"
+                      method="post"
+                      style="display:inline;"
+                      onsubmit="return confirm('Delete this content?');">
+                    <button type="submit">🗑 Delete</button>
+                </form>
+            </li>
+            <hr>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No content found.</p>
+{% endif %}
+
+</body>
+</html>
+

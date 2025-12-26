@@ -1,0 +1,47 @@
+<h2>{% if content %}Edit Content{% else %}Create Content{% endif %}</h2>
+
+<form method="post" action="{{ action }}">
+
+    <!-- TITLE -->
+    <input
+        name="title"
+        placeholder="Title"
+        value="{{ content.title if content else '' }}"
+        required
+    >
+
+    <br><br>
+
+    <!-- BODY -->
+    <textarea
+        name="body"
+        placeholder="Body"
+        required
+    >{{ content.body if content else '' }}</textarea>
+
+    <br><br>
+
+    <!-- AUTHOR -->
+    <input
+        name="author"
+        placeholder="Author"
+        value="{{ content.author if content else '' }}"
+        required
+    >
+
+    <br><br>
+
+    <!-- TAGS (optional, if you added earlier) -->
+    <input
+        name="tags"
+        placeholder="Tags (comma separated)"
+        value="{{ content.tags | join(',') if content and content.tags else '' }}"
+    >
+
+    <br><br>
+
+    <button type="submit">
+        {% if content %}Update{% else %}Create{% endif %}
+    </button>
+
+</form>
