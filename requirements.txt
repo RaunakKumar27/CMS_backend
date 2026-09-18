@@ -7,3 +7,6 @@ motor
 redis
 python-dotenv
 starlette
+bcrypt
+PyJWT
+pydantic-settings
