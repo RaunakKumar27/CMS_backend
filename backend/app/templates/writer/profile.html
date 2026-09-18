@@ -1,0 +1,149 @@
+{% extends "writer/base_writer.html" %}
+
+{% block title %}My Writer Profile - DO Record{% endblock %}
+
+{% block content %}
+<script src="/static/js/image_uploader.js"></script>
+<div style="margin-bottom: 2rem;">
+  <h1 style="font-size: 1.8rem; font-weight: 800; font-family: 'Inter', sans-serif;">My Writer Profile & Security</h1>
+  <p style="color: var(--text-muted); font-size: 0.9rem;">Manage your public journalist bio, avatar photo, social
+    handles, and account password.</p>
+</div>
+
+{% if msg %}
+<div
+  style="background-color: {% if msg_status == 'error' %}rgba(239, 68, 68, 0.15){% else %}rgba(34, 197, 94, 0.15){% endif %}; border: 1px solid {% if msg_status == 'error' %}#ef4444{% else %}#16a34a{% endif %}; color: {% if msg_status == 'error' %}#ef4444{% else %}#16a34a{% endif %}; padding: 0.75rem 1rem; border-radius: var(--radius-md); margin-bottom: 1.5rem;">
+  <i class="fa-solid {% if msg_status == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %} me-1"></i> {{ msg }}
+</div>
+{% endif %}
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+
+  <!-- PROFILE FORM -->
+  <div class="card" style="padding: 1.5rem;">
+    <h3
+      style="font-size: 1.1rem; font-family: 'Inter', sans-serif; font-weight: 700; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+      Public Journalist Profile
+    </h3>
+
+    <!-- AVATAR UPLOAD SECTION -->
+    <div
+      style="background-color: var(--bg-surface-elevated); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
+      <div
+        style="width: 90px; height: 90px; border-radius: 50%; overflow: hidden; border: 3px solid var(--brand-red); box-shadow: var(--shadow-sm); flex-shrink: 0;">
+        <img id="writer-avatar-preview" src="{{ current_user.avatar_url or '/static/images/default_avatar.png' }}"
+          alt="{{ current_user.name }}" style="width: 100%; height: 100%; object-fit: cover;">
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 0.5rem; flex-grow: 1;">
+        <label class="form-label" style="margin-bottom: 0;">Profile Photo (Upload from Computer)</label>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <input type="file" id="writer-photo-file" accept="image/jpeg,image/png,image/webp"
+            style="display: none;" onchange="handleWriterPhotoPreview(event)">
+          <button type="button" id="writer-photo-upload-button" class="btn btn-secondary btn-sm"
+            onclick="document.getElementById('writer-photo-file').click()">
+            <i class="fa-solid fa-upload me-1"></i> Upload Image
+          </button>
+          <button type="button" id="save-photo-btn" class="btn btn-primary btn-sm" disabled>
+            <i class="fa-solid fa-floppy-disk me-1"></i> Save Profile Picture
+          </button>
+          <button type="button" id="remove-photo-btn" class="btn btn-outline btn-sm">
+            <i class="fa-solid fa-trash me-1"></i> Remove Image
+          </button>
+        </div>
+        <div style="font-size: 0.75rem; color: var(--text-muted);" id="writer-photo-name" aria-live="polite">JPG, PNG, or WebP up to 5 MB</div>
+      </div>
+    </div>
+
+    <form action="/writer/profile" method="POST">
+      <div class="form-group">
+        <label class="form-label">Full Display Name</label>
+        <input type="text" name="name" class="form-control" value="{{ current_user.name }}" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input type="email" name="email" class="form-control" value="{{ current_user.email }}" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Journalist Biography</label>
+        <textarea name="bio" class="form-control" style="min-height: 90px;">{{ current_user.bio or '' }}</textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Update Profile
+        Details</button>
+    </form>
+  </div>
+
+  <!-- PASSWORD CHANGE -->
+  <div class="card" style="padding: 1.5rem;">
+    <h3
+      style="font-size: 1.1rem; font-family: 'Inter', sans-serif; font-weight: 700; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+      Change Password
+    </h3>
+
+    <form action="/account/change-password" method="POST" onsubmit="this.querySelector('button[type=submit]').disabled=true; this.querySelector('button[type=submit]').innerHTML='<i class=\"fa-solid fa-spinner fa-spin\"></i> Changing...';">
+      <div class="form-group">
+        <label class="form-label">Current Password</label>
+        <div style="display:flex; gap:0.5rem;"><input type="password" name="current_password" class="form-control" required autocomplete="current-password"><button type="button" class="btn btn-outline btn-sm" onclick="togglePassword(this)" aria-label="Show current password"><i class="fa-solid fa-eye"></i></button></div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">New Password</label>
+        <div style="display:flex; gap:0.5rem;"><input type="password" name="new_password" class="form-control" placeholder="At least 8 characters" minlength="8" required autocomplete="new-password"><button type="button" class="btn btn-outline btn-sm" onclick="togglePassword(this)" aria-label="Show new password"><i class="fa-solid fa-eye"></i></button></div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Confirm New Password</label>
+        <div style="display:flex; gap:0.5rem;"><input type="password" name="confirm_password" class="form-control" minlength="8" required autocomplete="new-password"><button type="button" class="btn btn-outline btn-sm" onclick="togglePassword(this)" aria-label="Show password confirmation"><i class="fa-solid fa-eye"></i></button></div>
+      </div>
+
+      <button type="submit" class="btn btn-secondary" style="width: 100%;"><i class="fa-solid fa-key"></i> Update
+        Password</button>
+    </form>
+  </div>
+
+</div>
+
+<script>
+  function handleWriterPhotoPreview(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const preview = document.getElementById('writer-avatar-preview');
+    const reader = new FileReader();
+    reader.onload = event => { preview.src = event.target.result; };
+    reader.readAsDataURL(file);
+    document.getElementById('save-photo-btn').disabled = false;
+    document.getElementById('writer-photo-name').textContent = file.name + ' selected. Click Save Profile Picture.';
+  }
+  document.getElementById('save-photo-btn').addEventListener('click', async () => {
+    const input = document.getElementById('writer-photo-file');
+    const file = input.files[0];
+    const url = await window.uploadCmsImage(file, {
+      input: input,
+      endpoint: '/writer/profile/photo',
+      setStatus: message => { document.getElementById('writer-photo-name').textContent = message; }
+    });
+    if (url) {
+      document.getElementById('writer-avatar-preview').src = url;
+      document.getElementById('save-photo-btn').disabled = true;
+    }
+  });
+  document.getElementById('remove-photo-btn').addEventListener('click', async () => {
+    const response = await fetch('/writer/profile/photo/remove', { method: 'POST', credentials: 'same-origin' });
+    const result = await response.json().catch(() => ({}));
+    if (response.ok && result.success) {
+      document.getElementById('writer-avatar-preview').src = result.url;
+      document.getElementById('writer-photo-name').textContent = 'Default profile image restored.';
+    }
+  });
+</script>
+<script>
+  function togglePassword(button) {
+    const input = button.parentElement.querySelector('input');
+    input.type = input.type === 'password' ? 'text' : 'password';
+    button.innerHTML = input.type === 'password' ? '<i class="fa-solid fa-eye"></i>' : '<i class="fa-solid fa-eye-slash"></i>';
+  }
+</script>
+{% endblock %}

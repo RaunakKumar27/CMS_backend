@@ -1,0 +1,74 @@
+{% extends "admin/base_admin.html" %}
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem">
+    <div>
+        <h1>Web Stories</h1>
+        <p style="color:var(--text-muted)">Review, publish, schedule, and manage visual stories.</p>
+    </div><a class="btn btn-primary" href="/admin/web-stories/create">Create Story</a>
+</div>
+<form class="card" method="get" style="padding:1rem;display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1rem"><input
+        class="form-control" name="search" value="{{ search_query }}" placeholder="Search stories"><select
+        class="form-control" name="status">
+        <option value="">All statuses</option>{% for s in
+        ['draft','pending_review','approved','scheduled','published','rejected','unpublished'] %}<option value="{{ s }}"
+            {% if current_status==s %}selected{% endif %}>{{ s|replace('_',' ')|title }}</option>{% endfor %}
+    </select><select class="form-control" name="category_id">
+        <option value="">All categories</option>{% for c in categories %}<option value="{{ c._id }}">{{ c.name }}
+        </option>{% endfor %}
+    </select><select class="form-control" name="sort">
+        <option value="newest">Newest</option>
+        <option value="oldest">Oldest</option>
+        <option value="views">Most viewed</option>
+    </select><button class="btn btn-outline">Filter</button></form>
+<div class="card">
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Cover</th>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Category</th>
+                    <th>Pages</th>
+                    <th>Status</th>
+                    <th>Views</th>
+                    <th>Published</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>{% for story in stories %}<tr>
+                    <td><img src="{{ story.cover_image }}" style="width:40px;height:62px;object-fit:cover"></td>
+                    <td><strong>{{ story.title }}</strong></td>
+                    <td>{{ story.author_name }}</td>
+                    <td>{{ story.category_name }}</td>
+                    <td>{{ story.pages|length }}</td>
+                    <td>{{ story.status|replace('_',' ')|title }}</td>
+                    <td>{{ story.view_count }}</td>
+                    <td>{{ story.published_at|strftime if story.published_at else '—' }}</td>
+                    <td style="white-space:nowrap"><a href="/admin/web-stories/{{ story._id }}"
+                            class="btn btn-outline btn-sm">Edit</a>{% if story.status=='published' %}<a
+                            href="/web-stories/story/{{ story.slug }}" target="_blank"
+                            class="btn btn-outline btn-sm">View</a>{% endif %}{% if story.status=='pending_review' %}
+                        <form method="post" action="/admin/web-stories/{{ story._id }}/status" style="display:inline">
+                            <input type="hidden" name="status" value="approved"><button
+                                class="btn btn-success btn-sm">Approve</button>
+                        </form>
+                        <form method="post" action="/admin/web-stories/{{ story._id }}/status" style="display:inline">
+                            <input type="hidden" name="status" value="rejected"><input type="hidden" name="feedback"
+                                value="Needs editorial revision"><button class="btn btn-danger btn-sm">Reject</button>
+                        </form>{% endif %}<form method="post" action="/admin/web-stories/{{ story._id }}/status"
+                            style="display:inline"><input type="hidden" name="status"
+                                value="{% if story.status=='published' %}unpublished{% else %}published{% endif %}"><button
+                                class="btn btn-secondary btn-sm">{% if story.status=='published' %}Unpublish{% else
+                                %}Publish{% endif %}</button></form>
+                        <form method="post" action="/admin/web-stories/{{ story._id }}/delete" style="display:inline"
+                            onsubmit="return confirm('Delete this Web Story?')"><button
+                                class="btn btn-danger btn-sm">Delete</button></form>
+                    </td>
+                </tr>{% else %}<tr>
+                    <td colspan="9">No Web Stories found.</td>
+                </tr>{% endfor %}</tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,132 @@
+{% extends "writer/base_writer.html" %}
+
+{% block title %}Writer Dashboard - {{ current_user.name }}{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+  <h1 style="font-size: 1.8rem; font-weight: 800; font-family: 'Inter', sans-serif;">
+    Welcome back, {{ current_user.name }}!
+  </h1>
+  <p style="color: var(--text-muted); font-size: 0.9rem;">
+    Your personal editorial workspace, story submissions, and reader engagement metrics.
+  </p>
+</div>
+
+<!-- STATS CARDS GRID -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon-wrapper" style="background-color: rgba(37, 99, 235, 0.1); color: var(--brand-blue);">
+      <i class="fa-solid fa-file-lines"></i>
+    </div>
+    <div>
+      <div class="stat-value">{{ stats.total_articles }}</div>
+      <div class="stat-label">My Total Articles</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon-wrapper" style="background-color: rgba(22, 163, 74, 0.1); color: #16a34a;">
+      <i class="fa-solid fa-circle-check"></i>
+    </div>
+    <div>
+      <div class="stat-value">{{ stats.published_articles }}</div>
+      <div class="stat-label">Published</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon-wrapper" style="background-color: rgba(245, 158, 11, 0.1); color: var(--brand-gold);">
+      <i class="fa-solid fa-clock"></i>
+    </div>
+    <div>
+      <div class="stat-value">{{ stats.pending_articles }}</div>
+      <div class="stat-label">Pending Review</div>
+    </div>
+  </div>
+
+  <div class="stat-card" style="{% if stats.rejected_articles > 0 %}border-color: var(--brand-red); background-color: rgba(229, 9, 20, 0.04);{% endif %}">
+    <div class="stat-icon-wrapper" style="background-color: rgba(220, 38, 38, 0.1); color: var(--brand-red);">
+      <i class="fa-solid fa-circle-xmark"></i>
+    </div>
+    <div>
+      <div class="stat-value">{{ stats.rejected_articles }}</div>
+      <div class="stat-label">Needs Revision</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon-wrapper" style="background-color: rgba(124, 58, 237, 0.1); color: var(--brand-purple);">
+      <i class="fa-solid fa-eye"></i>
+    </div>
+    <div>
+      <div class="stat-value">{{ stats.total_views }}</div>
+      <div class="stat-label">My Total Readers</div>
+    </div>
+  </div>
+</div>
+
+<!-- REJECTION FEEDBACK ALERT IF ANY -->
+{% if rejected_articles %}
+<div style="background-color: rgba(220, 38, 38, 0.1); border: 1px solid #dc2626; border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 2rem;">
+  <h3 style="color: #ef4444; font-size: 1.1rem; font-family: 'Inter', sans-serif; font-weight: 700; margin-bottom: 0.75rem;">
+    <i class="fa-solid fa-triangle-exclamation me-1"></i> Editor Feedback Required on {{ rejected_articles | length }} Story:
+  </h3>
+  {% for art in rejected_articles %}
+  <div style="background-color: var(--bg-surface); padding: 1rem; border-radius: var(--radius-md); margin-top: 0.75rem; border: 1px solid var(--border-color);">
+    <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 0.2rem;">{{ art.title }}</div>
+    <div style="font-size: 0.875rem; color: var(--text-main); margin-bottom: 0.75rem;"><strong>Admin Feedback:</strong> "{{ art.rejection_feedback }}"</div>
+    <a href="/writer/articles/{{ art._id }}" class="btn btn-primary btn-sm"><i class="fa-solid fa-pen"></i> Edit & Resubmit Story</a>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- MY RECENT ARTICLES TABLE -->
+<div class="card" style="padding: 1.5rem;">
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+    <h3 style="font-size: 1.1rem; font-family: 'Inter', sans-serif; font-weight: 700;">My Recent Articles</h3>
+    <a href="/writer/articles" style="font-size: 0.8rem; font-weight: 700; color: var(--brand-blue);">View All My Stories</a>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Category</th>
+          <th>Status</th>
+          <th>Views</th>
+          <th>Updated</th>
+          <th style="text-align: right;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for art in my_articles %}
+        <tr>
+          <td><strong><a href="/writer/articles/{{ art._id }}">{{ art.title }}</a></strong></td>
+          <td><span class="badge badge-cat">{{ art.category_name }}</span></td>
+          <td>
+            {% if art.status == 'published' %}
+              <span class="badge badge-status-published">Published</span>
+            {% elif art.status == 'pending' %}
+              <span class="badge badge-status-pending">Pending Review</span>
+            {% elif art.status == 'draft' %}
+              <span class="badge badge-status-draft">Draft</span>
+            {% elif art.status == 'rejected' %}
+              <span class="badge badge-status-rejected">Needs Revision</span>
+            {% endif %}
+          </td>
+          <td>{{ art.views_count }}</td>
+          <td>{{ art.updated_at | strftime }}</td>
+          <td style="text-align: right;">
+            <a href="/writer/articles/{{ art._id }}" class="btn btn-secondary btn-sm"><i class="fa-solid fa-pen"></i> Edit</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">You have not written any articles yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

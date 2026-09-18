@@ -1,0 +1,137 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Writer Applications - DO Record Super Admin{% endblock %}
+
+{% block content %}
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <h1 style="font-size: 1.8rem; font-weight: 800; font-family: 'Inter', sans-serif;">Writer Applications Desk</h1>
+    <p style="color: var(--text-muted); font-size: 0.9rem;">Review incoming journalist registration requests, portfolio submissions, and approve writer accounts.</p>
+  </div>
+</div>
+
+<!-- STATS CARDS GRID -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon-wrapper" style="background-color: rgba(37, 99, 235, 0.1); color: var(--brand-blue);">
+      <i class="fa-solid fa-file-signature"></i>
+    </div>
+    <div>
+      <div class="stat-value">{{ stats.total }}</div>
+      <div class="stat-label">Total Applications</div>
+    </div>
+  </div>
+
+  <div class="stat-card" style="{% if stats.pending > 0 %}border-color: var(--brand-gold); background-color: rgba(245, 158, 11, 0.05);{% endif %}">
+    <div class="stat-icon-wrapper" style="background-color: rgba(245, 158, 11, 0.15); color: var(--brand-gold);">
+      <i class="fa-solid fa-clock"></i>
+    </div>
+    <div>
+      <div class="stat-value">{{ stats.pending }}</div>
+      <div class="stat-label">Pending Review</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon-wrapper" style="background-color: rgba(22, 163, 74, 0.1); color: #16a34a;">
+      <i class="fa-solid fa-user-check"></i>
+    </div>
+    <div>
+      <div class="stat-value">{{ stats.approved }}</div>
+      <div class="stat-label">Approved Writers</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon-wrapper" style="background-color: rgba(220, 38, 38, 0.1); color: var(--brand-red);">
+      <i class="fa-solid fa-user-xmark"></i>
+    </div>
+    <div>
+      <div class="stat-value">{{ stats.rejected }}</div>
+      <div class="stat-label">Rejected</div>
+    </div>
+  </div>
+</div>
+
+<!-- FILTER TABS & SEARCH -->
+<div style="background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+  <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+    <a href="/admin/writer-applications" class="btn btn-sm {% if not current_status %}btn-primary{% else %}btn-outline{% endif %}">All Applications</a>
+    <a href="/admin/writer-applications?status=PENDING" class="btn btn-sm {% if current_status == 'PENDING' %}btn-primary{% else %}btn-outline{% endif %}">Pending</a>
+    <a href="/admin/writer-applications?status=APPROVED" class="btn btn-sm {% if current_status == 'APPROVED' %}btn-primary{% else %}btn-outline{% endif %}">Approved</a>
+    <a href="/admin/writer-applications?status=REJECTED" class="btn btn-sm {% if current_status == 'REJECTED' %}btn-primary{% else %}btn-outline{% endif %}">Rejected</a>
+  </div>
+
+  <form action="/admin/writer-applications" method="GET" style="display: flex; gap: 0.5rem;">
+    {% if current_status %}
+      <input type="hidden" name="status" value="{{ current_status }}">
+    {% endif %}
+    <input type="text" name="search" class="form-control" style="width: 220px; padding: 0.4rem 0.75rem; font-size: 0.85rem;" placeholder="Search applicant name, email..." value="{{ search_query if search_query else '' }}">
+    <button type="submit" class="btn btn-secondary btn-sm"><i class="fa-solid fa-magnifying-glass"></i></button>
+  </form>
+</div>
+
+<!-- APPLICATIONS TABLE -->
+<div class="card">
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Photo</th>
+          <th>Applicant Name</th>
+          <th>Email & Location</th>
+          <th>Areas of Interest / Beats</th>
+          <th>Submitted</th>
+          <th>Status</th>
+          <th style="text-align: right;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for app_item in applications %}
+        <tr>
+          <td style="width: 60px;">
+            <img src="{{ app_item.avatar_url or '/static/images/default_avatar.png' }}" alt="{{ app_item.full_name }}" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-color);">
+          </td>
+          <td>
+            <div style="font-weight: 700; font-size: 0.95rem;">
+              <a href="/admin/writer-applications/{{ app_item._id }}">{{ app_item.full_name }}</a>
+            </div>
+            {% if app_item.portfolio_url %}
+              <a href="{{ app_item.portfolio_url }}" target="_blank" style="font-size: 0.75rem; color: var(--brand-blue);"><i class="fa-solid fa-arrow-up-right-from-square me-1"></i> Portfolio</a>
+            {% endif %}
+          </td>
+          <td>
+            <div style="font-size: 0.875rem;">{{ app_item.email }}</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">{{ app_item.city }}{% if app_item.country %}, {{ app_item.country }}{% endif %}</div>
+          </td>
+          <td>
+            <span class="badge badge-cat" style="font-size: 0.75rem; padding: 0.2rem 0.55rem;">{{ app_item.areas_of_interest }}</span>
+          </td>
+          <td style="font-size: 0.8rem; color: var(--text-muted);">{{ app_item.created_at | strftime("%b %d, %Y") }}</td>
+          <td>
+            {% if app_item.status == 'APPROVED' %}
+              <span class="badge badge-status-published"><i class="fa-solid fa-check me-1"></i> Approved</span>
+            {% elif app_item.status == 'PENDING' or app_item.status == 'UNDER_REVIEW' %}
+              <span class="badge badge-status-pending"><i class="fa-solid fa-clock me-1"></i> Pending Review</span>
+            {% elif app_item.status == 'REJECTED' %}
+              <span class="badge badge-status-rejected">Rejected</span>
+            {% endif %}
+          </td>
+          <td style="text-align: right; white-space: nowrap;">
+            <a href="/admin/writer-applications/{{ app_item._id }}" class="btn btn-primary btn-sm">
+              <i class="fa-solid fa-eye me-1"></i> Review Details
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" style="text-align: center; padding: 3rem 0; color: var(--text-muted);">
+            No writer applications found.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

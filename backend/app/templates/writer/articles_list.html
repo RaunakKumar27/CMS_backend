@@ -1,0 +1,79 @@
+{% extends "writer/base_writer.html" %}
+
+{% block title %}My Articles - Writer Desk{% endblock %}
+
+{% block content %}
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <h1 style="font-size: 1.8rem; font-weight: 800; font-family: 'Inter', sans-serif;">My Articles & Drafts</h1>
+    <p style="color: var(--text-muted); font-size: 0.9rem;">View draft status, pending reviews, published stories, and admin feedback.</p>
+  </div>
+  <a href="/writer/articles/create" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Write New Story</a>
+</div>
+
+<!-- STATUS FILTERS -->
+<div style="background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1rem; margin-bottom: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+  <a href="/writer/articles" class="btn btn-sm {% if not current_status %}btn-primary{% else %}btn-outline{% endif %}">All Articles</a>
+  <a href="/writer/articles?status=published" class="btn btn-sm {% if current_status == 'published' %}btn-primary{% else %}btn-outline{% endif %}">Published</a>
+  <a href="/writer/articles?status=pending" class="btn btn-sm {% if current_status == 'pending' %}btn-primary{% else %}btn-outline{% endif %}">Pending Review</a>
+  <a href="/writer/articles?status=draft" class="btn btn-sm {% if current_status == 'draft' %}btn-primary{% else %}btn-outline{% endif %}">Drafts</a>
+  <a href="/writer/articles?status=rejected" class="btn btn-sm {% if current_status == 'rejected' %}btn-primary{% else %}btn-outline{% endif %}">Needs Revision</a>
+</div>
+
+<!-- ARTICLES TABLE -->
+<div class="card">
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Image</th>
+          <th>Title</th>
+          <th>Category</th>
+          <th>Status</th>
+          <th>Views</th>
+          <th>Updated</th>
+          <th style="text-align: right;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for art in articles %}
+        <tr>
+          <td style="width: 70px;">
+            <img src="{{ art.featured_image }}" alt="" style="width: 60px; height: 40px; object-fit: cover; border-radius: var(--radius-sm);">
+          </td>
+          <td style="max-width: 340px;">
+            <div style="font-weight: 700; line-height: 1.3;">
+              <a href="/writer/articles/{{ art._id }}">{{ art.title }}</a>
+            </div>
+            {% if art.status == 'rejected' and art.rejection_feedback %}
+              <div style="font-size: 0.75rem; color: #ef4444; margin-top: 0.2rem;">
+                <i class="fa-solid fa-triangle-exclamation"></i> Feedback: {{ art.rejection_feedback | truncate_words(8) }}
+              </div>
+            {% endif %}
+          </td>
+          <td><span class="badge badge-cat">{{ art.category_name }}</span></td>
+          <td>
+            {% if art.status == 'published' %}
+              <span class="badge badge-status-published">Published</span>
+            {% elif art.status == 'pending' %}
+              <span class="badge badge-status-pending">Pending Review</span>
+            {% elif art.status == 'draft' %}
+              <span class="badge badge-status-draft">Draft</span>
+            {% elif art.status == 'rejected' %}
+              <span class="badge badge-status-rejected">Needs Revision</span>
+            {% endif %}
+          </td>
+          <td><strong>{{ art.views_count }}</strong></td>
+          <td style="font-size: 0.8rem; color: var(--text-muted);">{{ art.updated_at | strftime("%b %d, %Y") }}</td>
+          <td style="text-align: right;">
+            <a href="/writer/articles/{{ art._id }}" class="btn btn-secondary btn-sm"><i class="fa-solid fa-pen"></i> Edit Story</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 3rem 0;">No articles found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

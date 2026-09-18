@@ -1,0 +1,148 @@
+{% extends "writer/base_writer.html" %}
+
+{% block title %}{% if article %}Edit Story - {{ article.title }}{% else %}Write New Story{% endif %} - Writer Desk{% endblock %}
+
+{% block content %}
+<form action="{% if article %}/writer/articles/{{ article._id }}{% else %}/writer/articles/create{% endif %}" method="POST" enctype="multipart/form-data">
+
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <a href="/writer/articles" style="font-size: 0.85rem; color: var(--text-muted);"><i class="fa-solid fa-arrow-left me-1"></i> Back to My Articles</a>
+      <h1 style="font-size: 1.8rem; font-weight: 800; font-family: 'Inter', sans-serif; margin-top: 0.25rem;">
+        {% if article %}Edit Article{% else %}Write New Story{% endif %}
+      </h1>
+    </div>
+
+    <div style="display: flex; gap: 0.75rem;">
+      {% if article %}<a href="/writer/web-stories/create?from_article={{ article._id }}" class="btn btn-outline"><i class="fa-solid fa-bolt"></i> Create Web Story</a>{% endif %}
+      <button type="submit" name="action_type" value="draft" class="btn btn-secondary"><i class="fa-solid fa-floppy-disk"></i> Save Draft</button>
+      <button type="submit" name="action_type" value="submit" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> Submit for Review</button>
+    </div>
+  </div>
+
+  {% if article and article.status == 'rejected' and article.rejection_feedback %}
+  <div style="background-color: rgba(220, 38, 38, 0.1); border: 1px solid #dc2626; border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 2rem;">
+    <h4 style="color: #ef4444; margin-bottom: 0.4rem; font-family: 'Inter', sans-serif;"><i class="fa-solid fa-circle-exclamation me-1"></i> Admin Rejection Feedback:</h4>
+    <p style="color: var(--text-main); font-size: 0.95rem;">{{ article.rejection_feedback }}</p>
+    <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem;">Make the requested changes below and click "Submit for Review".</p>
+  </div>
+  {% endif %}
+
+  <div style="display: grid; grid-template-columns: 2.5fr 1fr; gap: 2rem;">
+    
+    <!-- LEFT: EDITOR -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+      <div class="card" style="padding: 1.5rem;">
+        <div class="form-group">
+          <label class="form-label">Article Headline *</label>
+          <input type="text" name="title" class="form-control" style="font-size: 1.2rem; font-weight: 700;" placeholder="Enter news title..." value="{{ article.title if article else '' }}" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Short Summary / Excerpt *</label>
+          <textarea name="excerpt" class="form-control" style="min-height: 80px;" placeholder="2-3 sentence teaser for public homepage card..." required>{{ article.excerpt if article else '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Story Body *</label>
+          <textarea name="body" class="form-control" style="min-height: 380px; font-family: 'Merriweather', serif; font-size: 1.05rem;" placeholder="Write story body using HTML formatting..." required>{{ article.body if article else '' }}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: PARAMETERS -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+      <div class="card" style="padding: 1.25rem;">
+        <h4 style="font-size: 0.95rem; font-family: 'Inter', sans-serif; font-weight: 700; margin-bottom: 1rem;">Story Details</h4>
+
+        <div class="form-group">
+          <label class="form-label">Category *</label>
+          <select name="category_id" class="form-control" required>
+            <option value="">Select Category...</option>
+            {% for cat in categories %}
+              <option value="{{ cat._id }}" {% if article and article.category_id == cat._id %}selected{% endif %}>{{ cat.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Tags (comma separated)</label>
+          <input type="text" name="tags" class="form-control" placeholder="e.g. AI, Tech, Elections" value="{{ article.tags | join(', ') if article and article.tags else '' }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="cover_image">Cover Image</label>
+          <input type="hidden" id="featured_image" name="featured_image" value="{{ article.featured_image if article else '' }}">
+          <input type="file" id="cover_image" class="form-control" accept="image/jpeg,image/png,image/webp">
+          <div style="display:flex; gap:.5rem; margin-top:.5rem; flex-wrap:wrap;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('cover_image').click()"><i class="fa-solid fa-upload"></i> Upload Image</button>
+            <button type="button" id="remove-cover-image" class="btn btn-outline btn-sm"><i class="fa-solid fa-trash"></i> Remove</button>
+          </div>
+          <p id="cover-upload-status" style="font-size:.78rem;color:var(--text-muted);margin:.45rem 0 0;" aria-live="polite"></p>
+          <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0.45rem 0 0;">Choose a JPG, PNG, or WebP image from your device (maximum 5 MB).</p>
+          {% if article and article.featured_image %}
+          <img id="cover-preview" src="{{ article.featured_image }}" alt="Current cover image" style="width: 100%; max-height: 150px; object-fit: cover; border-radius: var(--radius-sm); margin-top: 0.75rem;">
+          {% else %}
+          <img id="cover-preview" alt="Cover preview" hidden style="width: 100%; max-height: 150px; object-fit: cover; border-radius: var(--radius-sm); margin-top: 0.75rem;">
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="card" style="padding: 1.25rem; border-top: 3px solid var(--brand-red);">
+        <h4 style="font-size: 0.95rem; font-family: 'Inter', sans-serif; font-weight: 700; margin-bottom: 0.4rem;"><i class="fa-solid fa-bolt" style="color: var(--brand-red);"></i> Web Story</h4>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">Turn this article into a visual, portrait-style story for the Web Stories section.</p>
+
+        <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem;">
+          <input type="checkbox" id="is_breaking" name="is_breaking" value="true" {% if article and article.is_breaking %}checked{% endif %} style="width: 18px; height: 18px; accent-color: var(--brand-red);">
+          <label for="is_breaking" style="font-size: 0.9rem; font-weight: 600; cursor: pointer;">Flag as Breaking News</label>
+        </div>
+
+        <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem;">
+          <input type="checkbox" id="is_web_story" name="is_web_story" value="true" {% if article and article.is_web_story %}checked{% endif %} style="width: 18px; height: 18px; accent-color: var(--brand-red);">
+          <label for="is_web_story" style="font-size: 0.9rem; font-weight: 600; cursor: pointer;">Create as a Web Story</label>
+        </div>
+
+        <div id="web-story-template-options" class="form-group" style="margin-top: 1rem; {% if not article or not article.is_web_story %}display: none;{% endif %}">
+          <label class="form-label" for="web_story_template">Story Template</label>
+          <select id="web_story_template" name="web_story_template" class="form-control">
+            <option value="classic" {% if article and article.web_story_template == 'classic' %}selected{% endif %}>Classic — headline over image</option>
+            <option value="headline" {% if article and article.web_story_template == 'headline' %}selected{% endif %}>Headline — bold news flash</option>
+            <option value="minimal" {% if article and article.web_story_template == 'minimal' %}selected{% endif %}>Minimal — clean image-led card</option>
+          </select>
+          <p style="font-size: 0.78rem; color: var(--text-muted); margin: 0.45rem 0 0;">For best results, upload a vertical 9:16 image (for example, 1080 × 1920 pixels).</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</form>
+<script>
+  const coverFile = document.getElementById('cover_image');
+  const featuredImage = document.getElementById('featured_image');
+  const coverPreview = document.getElementById('cover-preview');
+  const coverStatus = document.getElementById('cover-upload-status');
+  function setCoverStatus(message) { coverStatus.textContent = message; }
+  async function uploadCoverImage(file) {
+    if (!file) { setCoverStatus('Please select an image.'); return; }
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) { setCoverStatus('Only JPG, JPEG, PNG and WebP images are allowed.'); return; }
+    if (file.size > 5 * 1024 * 1024) { setCoverStatus('Image must be 5 MB or smaller.'); return; }
+    const body = new FormData(); body.append('file', file); coverFile.disabled = true; setCoverStatus('Uploading image...');
+    try {
+      const response = await fetch('/writer/articles/upload-image', { method: 'POST', body, credentials: 'same-origin' });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.success || !result.url) throw new Error(result.detail || 'Image upload failed.');
+      featuredImage.value = result.url; coverPreview.src = result.url; coverPreview.hidden = false; setCoverStatus('Image uploaded.');
+    } catch (error) { setCoverStatus(error.message || 'Image upload failed.'); }
+    finally { coverFile.disabled = false; coverFile.value = ''; }
+  }
+  coverFile.addEventListener('change', event => uploadCoverImage(event.target.files[0]));
+  document.getElementById('remove-cover-image').addEventListener('click', () => { featuredImage.value = ''; coverPreview.removeAttribute('src'); coverPreview.hidden = true; setCoverStatus('Image removed.'); });
+  const webStoryToggle = document.getElementById('is_web_story');
+  const templateOptions = document.getElementById('web-story-template-options');
+  if (webStoryToggle && templateOptions) {
+    webStoryToggle.addEventListener('change', () => {
+      templateOptions.style.display = webStoryToggle.checked ? 'block' : 'none';
+    });
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "public/base_public.html" %}
+{% block title %}{% if story_category %}{{ story_category.name }} {% endif %}Web Stories | DO Record{% endblock %}
+{% block content %}<div class="container">
+    <section style="margin:3rem 0">
+        <p style="color:var(--brand-red);font-weight:800;letter-spacing:.12em">DO RECORD VISUAL NEWS</p>
+        <h1 style="font-size:2.5rem">{% if story_category %}{{ story_category.name }} {% endif %}Web <span
+                style="color:var(--brand-red)">Stories</span></h1>
+        <p style="color:var(--text-muted)">Quick, visual explainers and news updates.</p>
+        <div class="web-stories-row story-list-row">{% for story in stories %}<a class="web-story-card"
+                href="/web-stories/story/{{ story.slug }}"><img src="{{ story.cover_image }}" alt="{{ story.title }}"
+                    loading="lazy"><span class="web-story-gradient"></span><span class="web-story-progress"></span><span
+                    class="web-story-copy"><span class="web-story-category">{{ story.category_name }} · {{
+                        story.published_at | strftime }}</span><strong>{{ story.title }}</strong></span></a>{% else %}
+            <p>No published stories yet.</p>{% endfor %}</div>
+    </section>
+</div>{% endblock %}

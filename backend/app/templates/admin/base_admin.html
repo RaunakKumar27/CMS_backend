@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Super Admin Panel - DO Record CMS{% endblock %}</title>
+  <link rel="icon" type="image/svg+xml" href="/static/assets/dorecord-logo.svg">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/design_system.css">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <div class="app-layout">
+    
+    <!-- SUPER ADMIN SIDEBAR -->
+    <aside class="sidebar" id="admin-sidebar">
+      <div class="sidebar-header">
+        <a href="/admin" title="DO Record" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none;">
+          <img src="/static/assets/dorecord-logo.svg" alt="DO Record" class="logo-img sidebar-logo-img">
+        </a>
+        <span class="badge" style="background-color: var(--brand-red); color: white; font-size: 0.65rem;">ADMIN</span>
+      </div>
+
+      <ul class="sidebar-menu">
+        <li class="sidebar-label">Main</li>
+        <li><a href="/admin" class="sidebar-link {% if active_tab == 'dashboard' %}active{% endif %}"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
+
+        <li class="sidebar-label">Editorial Content</li>
+        <li><a href="/admin/articles" class="sidebar-link {% if active_tab == 'articles_all' %}active{% endif %}"><i class="fa-solid fa-newspaper"></i> All Articles</a></li>
+        <li><a href="/admin/articles?status=pending" class="sidebar-link {% if active_tab == 'articles_pending' %}active{% endif %}"><i class="fa-solid fa-clock-rotate-left"></i> Pending Review {% if pending_count %}<span class="badge badge-status-pending" style="margin-left: auto;">{{ pending_count }}</span>{% endif %}</a></li>
+        <li><a href="/admin/articles?status=published" class="sidebar-link {% if active_tab == 'articles_published' %}active{% endif %}"><i class="fa-solid fa-circle-check"></i> Published</a></li>
+        <li><a href="/admin/articles?status=draft" class="sidebar-link {% if active_tab == 'articles_draft' %}active{% endif %}"><i class="fa-solid fa-file-lines"></i> Drafts</a></li>
+        <li><a href="/admin/articles?status=rejected" class="sidebar-link {% if active_tab == 'articles_rejected' %}active{% endif %}"><i class="fa-solid fa-circle-xmark"></i> Rejected</a></li>
+
+        <li class="sidebar-label">Web Stories</li>
+        <li><a href="/admin/web-stories" class="sidebar-link {% if active_tab == 'web_stories' %}active{% endif %}"><i class="fa-solid fa-bolt"></i> All Stories</a></li>
+        <li><a href="/admin/web-stories/create" class="sidebar-link {% if active_tab == 'create_web_story' %}active{% endif %}"><i class="fa-solid fa-plus"></i> Create Story</a></li>
+        <li><a href="/admin/web-stories?status=draft" class="sidebar-link">Drafts</a></li>
+        <li><a href="/admin/web-stories?status=pending_review" class="sidebar-link">Pending Review</a></li>
+        <li><a href="/admin/web-stories?status=scheduled" class="sidebar-link">Scheduled</a></li>
+        <li><a href="/admin/web-stories?status=published" class="sidebar-link">Published</a></li>
+        <li><a href="/admin/web-stories?status=rejected" class="sidebar-link">Rejected</a></li>
+
+        <li class="sidebar-label">Newsroom Management</li>
+        <li><a href="/admin/writers" class="sidebar-link {% if active_tab == 'writers' %}active{% endif %}"><i class="fa-solid fa-users"></i> Writers & Staff</a></li>
+        <li><a href="/admin/writer-applications" class="sidebar-link {% if active_tab == 'writer_applications' %}active{% endif %}"><i class="fa-solid fa-file-signature"></i> Writer Applications {% if pending_apps_count %}<span class="badge badge-status-pending" style="margin-left: auto;">{{ pending_apps_count }}</span>{% endif %}</a></li>
+        <li><a href="/admin/categories" class="sidebar-link {% if active_tab == 'categories' %}active{% endif %}"><i class="fa-solid fa-folder-tree"></i> Categories</a></li>
+
+        <li><a href="/admin/tags" class="sidebar-link {% if active_tab == 'tags' %}active{% endif %}"><i class="fa-solid fa-tags"></i> Tags</a></li>
+        <li><a href="/admin/media" class="sidebar-link {% if active_tab == 'media' %}active{% endif %}"><i class="fa-solid fa-photo-film"></i> Media Library</a></li>
+
+        <li class="sidebar-label">Channel Control</li>
+        <li><a href="/admin/homepage" class="sidebar-link {% if active_tab == 'homepage' %}active{% endif %}"><i class="fa-solid fa-sliders"></i> Homepage Manager</a></li>
+        <li><a href="/admin/analytics" class="sidebar-link {% if active_tab == 'analytics' %}active{% endif %}"><i class="fa-solid fa-square-poll-vertical"></i> Analytics</a></li>
+        <li><a href="/admin/notifications" class="sidebar-link {% if active_tab == 'notifications' %}active{% endif %}"><i class="fa-solid fa-bell"></i> Notifications</a></li>
+        <li><a href="/admin/activity-logs" class="sidebar-link {% if active_tab == 'logs' %}active{% endif %}"><i class="fa-solid fa-shield-halved"></i> Audit Trail Logs</a></li>
+
+        <li class="sidebar-label">System</li>
+        <li><a href="/admin/settings" class="sidebar-link {% if active_tab == 'settings' %}active{% endif %}"><i class="fa-solid fa-gear"></i> Settings & Security</a></li>
+      </ul>
+
+      <div style="padding: 1rem; border-top: 1px solid var(--border-color-dark); font-size: 0.8rem; color: #64748b;">
+        <i class="fa-solid fa-circle" style="color: #22c55e; font-size: 0.6rem; margin-right: 0.3rem;"></i> Newsroom CMS v2.5 Online
+      </div>
+    </aside>
+    <div class="sidebar-backdrop" id="admin-sidebar-backdrop"></div>
+
+    <!-- MAIN CONTENT AREA -->
+    <div class="main-content">
+      <!-- Admin Top Nav Bar -->
+      <header class="top-nav-admin">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <button type="button" class="btn btn-outline btn-sm" style="display: none;" id="sidebar-toggle-btn" aria-label="Open admin navigation" aria-expanded="false" aria-controls="admin-sidebar">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <a href="/" target="_blank" class="btn btn-outline btn-sm"><i class="fa-solid fa-globe"></i> View Public Site</a>
+          <a href="/admin/articles/create" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> Create Article</a>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 1.25rem;">
+          <button id="theme-toggle-admin" class="btn btn-outline btn-sm" style="padding: 0.3rem 0.6rem;">
+            <i class="fa-solid fa-moon"></i>
+          </button>
+          
+          <div class="user-profile-btn" style="position: relative;">
+            <img src="{{ current_user.avatar_url or '/static/images/default_avatar.png' }}" alt="{{ current_user.name }}" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid var(--brand-red);">
+            <div>
+              <div style="font-weight: 700; font-size: 0.875rem; line-height: 1.1;">{{ current_user.name }}</div>
+              <div style="font-size: 0.7rem; color: var(--text-muted);">Super Admin</div>
+            </div>
+            <a href="/logout" class="btn btn-outline btn-sm" style="margin-left: 0.75rem; color: #ef4444; border-color: #ef4444;" title="Sign out">
+              <i class="fa-solid fa-right-from-bracket"></i>
+            </a>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Content View -->
+      <div style="padding: 2rem; flex-grow: 1;">
+        {% block content %}{% endblock %}
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Theme toggle script for admin
+    const themeBtnAdmin = document.getElementById('theme-toggle-admin');
+    if (localStorage.getItem('dorecord_theme') === 'dark') {
+      document.body.classList.add('dark-mode');
+      themeBtnAdmin.innerHTML = '<i class="fa-solid fa-sun"></i>';
+    }
+    themeBtnAdmin.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      if (document.body.classList.contains('dark-mode')) {
+        localStorage.setItem('dorecord_theme', 'dark');
+        themeBtnAdmin.innerHTML = '<i class="fa-solid fa-sun"></i>';
+      } else {
+        localStorage.setItem('dorecord_theme', 'light');
+        themeBtnAdmin.innerHTML = '<i class="fa-solid fa-moon"></i>';
+      }
+    });
+
+    const adminSidebar = document.getElementById('admin-sidebar');
+    const adminToggle = document.getElementById('sidebar-toggle-btn');
+    const adminBackdrop = document.getElementById('admin-sidebar-backdrop');
+    function setAdminSidebar(open) {
+      adminSidebar.classList.toggle('open', open);
+      adminBackdrop.classList.toggle('is-visible', open);
+      adminToggle.setAttribute('aria-expanded', String(open));
+      adminToggle.setAttribute('aria-label', open ? 'Close admin navigation' : 'Open admin navigation');
+    }
+    adminToggle.addEventListener('click', () => setAdminSidebar(!adminSidebar.classList.contains('open')));
+    adminBackdrop.addEventListener('click', () => setAdminSidebar(false));
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && adminSidebar.classList.contains('open')) setAdminSidebar(false);
+    });
+    if (window.matchMedia('(max-width: 1023px)').matches) adminToggle.style.display = 'inline-flex';
+  </script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Activate Writer Account - DO Record</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/design_system.css">
+  <style>
+    body { background: radial-gradient(circle at top, #1e293b 0%, #090d16 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem; color: #f8fafc; }
+    .auth-card { background-color: #111827; border: 1px solid #1f2937; border-radius: var(--radius-lg); width: 100%; max-width: 480px; padding: 2.5rem; }
+  </style>
+</head>
+<body>
+
+  <div class="auth-card">
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <a href="/" class="brand-logo brand-logo-font" style="color: white; font-size: 2rem; justify-content: center;">
+        DO <span style="color: var(--brand-red);">RECORD</span><span class="brand-dot"></span>
+      </a>
+      <h2 style="font-size: 1.25rem; font-family: 'Inter', sans-serif; color: white; margin-top: 1rem;">Activate Writer Account</h2>
+      <p style="color: #94a3b8; font-size: 0.85rem; margin-top: 0.25rem;">Congratulations! Your application has been approved by the DO Record newsroom.</p>
+    </div>
+
+    {% if invalid %}
+      <div style="background-color: rgba(220, 38, 38, 0.15); border: 1px solid #dc2626; color: #f87171; padding: 1rem; border-radius: var(--radius-md); font-size: 0.9rem; text-align: center;">
+        <i class="fa-solid fa-circle-exclamation" style="font-size: 2rem; margin-bottom: 0.5rem;"></i>
+        <p>{{ error or "This activation link is invalid or has already been used." }}</p>
+        <a href="/login" class="btn btn-outline btn-sm" style="margin-top: 1rem; color: white;">Return to Login</a>
+      </div>
+    {% else %}
+
+      {% if error %}
+        <div style="background-color: rgba(220, 38, 38, 0.15); border: 1px solid #dc2626; color: #f87171; padding: 0.75rem; border-radius: var(--radius-md); font-size: 0.875rem; margin-bottom: 1.25rem;">
+          {{ error }}
+        </div>
+      {% endif %}
+
+      <form action="/activate-account" method="POST">
+        <input type="hidden" name="token" value="{{ token }}">
+
+        <div style="background-color: #1f2937; border-radius: var(--radius-md); padding: 1rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem;">
+          <img src="{{ applicant.avatar_url or '/static/images/default_avatar.png' }}" alt="{{ applicant.full_name }}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+          <div>
+            <div style="font-weight: 700; color: white; font-size: 0.95rem;">{{ applicant.full_name }}</div>
+            <div style="font-size: 0.8rem; color: #94a3b8;">{{ applicant.email }}</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" style="color: #cbd5e1;">Create Account Password *</label>
+          <input type="password" name="password" class="form-control" style="background-color: #1f2937; border-color: #374151; color: white;" placeholder="At least 8 characters" required autofocus>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" style="color: #cbd5e1;">Confirm Password *</label>
+          <input type="password" name="confirm_password" class="form-control" style="background-color: #1f2937; border-color: #374151; color: white;" placeholder="Re-enter password" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.75rem; font-size: 1rem;">
+          <i class="fa-solid fa-user-check me-1"></i> Activate Account & Login
+        </button>
+      </form>
+    {% endif %}
+  </div>
+
+</body>
+</html>

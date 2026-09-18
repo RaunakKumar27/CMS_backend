@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}DO Record - Digital Media & News{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}DO Record is your premier source for breaking news, in-depth politics, tech analysis, and global affairs.{% endblock %}">
+  <meta name="keywords" content="{% block meta_keywords %}DO Record, news, india, world, politics, tech, sports{% endblock %}">
+  <link rel="icon" type="image/svg+xml" href="/static/assets/dorecord-logo.svg?v=20260912c">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/design_system.css?v=20260915mobile8">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="container top-bar-flex">
+      <div>
+        <i class="fa-regular fa-calendar-days me-1"></i> <span id="current-date-time">Loading date...</span>
+      </div>
+      <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 500;">
+        <span><i class="fa-solid fa-globe me-1"></i> DO Record Media Network</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Breaking News Ticker -->
+  {% if breaking_articles %}
+  <div class="breaking-news-ticker">
+    <span class="breaking-badge"><i class="fa-solid fa-bolt"></i> BREAKING</span>
+    <marquee behavior="scroll" direction="left" scrollamount="6" style="font-weight: 600;">
+      {% for article in breaking_articles %}
+        <a href="/article/{{ article.slug }}" style="color: inherit; text-decoration: none; margin-right: 3rem;">{{ article.title }}</a>
+      {% endfor %}
+    </marquee>
+  </div>
+  {% endif %}
+
+  <!-- Main Site Header -->
+  <header class="site-header">
+    <div class="container nav-main">
+      <a href="/" title="DO Record" class="header-logo-link">
+        <img src="/static/assets/dorecord-logo.svg?v=20260912c" alt="DO Record" class="logo-img header-logo-img">
+      </a>
+
+      <!-- Desktop Navigation Links -->
+      <ul class="nav-links">
+        <li><a href="/" class="{% if current_page == 'home' %}active{% endif %}">Home</a></li>
+        <li><a href="/trending" class="{% if current_page == 'trending' %}active{% endif %}">Trending</a></li>
+        <li><a href="/web-stories" class="{% if current_page == 'stories' %}active{% endif %}">Web Stories</a></li>
+        {% if categories %}
+          {% for cat in categories[:6] %}
+            <li><a href="/category/{{ cat.slug }}">{{ cat.name }}</a></li>
+          {% endfor %}
+        {% endif %}
+      </ul>
+
+      <!-- Global Search & 3-Line Hamburger Menu -->
+      <div style="display: flex; align-items: center; gap: 0.75rem; position: relative;">
+        <form action="/search" method="GET" class="search-box">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" name="q" class="search-input" placeholder="Search news..." value="{{ search_query if search_query else '' }}">
+        </form>
+
+        <!-- 3-Line Hamburger Menu Button -->
+        <button id="reader-hamburger-btn" class="hamburger-btn" aria-label="Open menu" aria-expanded="false" aria-controls="reader-dropdown-menu" type="button">
+          <i class="fa-solid fa-bars hamburger-icon"></i>
+        </button>
+
+        <!-- Dropdown Menu Panel -->
+        <div id="reader-dropdown-menu" class="reader-dropdown-menu" role="menu" aria-hidden="true">
+          <ul class="dropdown-menu-list">
+            <!-- Mobile Only Navigation Links -->
+            <li class="mobile-only-nav-item"><a href="/" class="dropdown-item {% if current_page == 'home' %}active{% endif %}"><i class="fa-solid fa-house me-2"></i> Home</a></li>
+            <li class="mobile-only-nav-item"><a href="/trending" class="dropdown-item {% if current_page == 'trending' %}active{% endif %}"><i class="fa-solid fa-fire me-2"></i> Trending</a></li>
+            <li class="mobile-only-nav-item"><a href="/web-stories" class="dropdown-item {% if current_page == 'stories' %}active{% endif %}"><i class="fa-solid fa-bolt me-2"></i> Web Stories</a></li>
+            {% if categories %}
+              {% for cat in categories[:6] %}
+                <li class="mobile-only-nav-item"><a href="/category/{{ cat.slug }}" class="dropdown-item"><i class="fa-solid fa-folder me-2"></i> {{ cat.name }}</a></li>
+              {% endfor %}
+            {% endif %}
+            <li class="mobile-only-nav-item" role="separator"><div class="dropdown-divider"></div></li>
+
+            {% if current_user %}
+              {% if current_user.role == 'super_admin' %}
+                <li role="menuitem">
+                  <a href="/admin" class="dropdown-item"><i class="fa-solid fa-gauge-high me-2"></i> Admin Dashboard</a>
+                </li>
+              {% else %}
+                <li role="menuitem">
+                  <a href="/writer" class="dropdown-item"><i class="fa-solid fa-feather me-2"></i> Writer Panel</a>
+                </li>
+              {% endif %}
+              <li role="separator"><div class="dropdown-divider"></div></li>
+              <li role="menuitem">
+                <a href="/logout" class="dropdown-item dropdown-item-danger"><i class="fa-solid fa-right-from-bracket me-2"></i> Logout</a>
+              </li>
+            {% else %}
+              <li role="menuitem">
+                <a href="/login" class="dropdown-item"><i class="fa-solid fa-lock me-2"></i> Login</a>
+              </li>
+            {% endif %}
+
+            <li role="separator"><div class="dropdown-divider"></div></li>
+
+            <li role="menuitem">
+              <button id="theme-toggle-btn" class="dropdown-item dropdown-theme-btn" type="button">
+                <span class="theme-label"><i class="fa-solid fa-moon theme-icon me-2"></i> <span id="theme-label-text">Dark Mode</span></span>
+                <span class="theme-switch-indicator"><span class="theme-switch-thumb"></span></span>
+              </button>
+            </li>
+
+            <li role="separator"><div class="dropdown-divider"></div></li>
+
+            <li role="menuitem">
+              <a href="/become-a-writer" class="dropdown-item dropdown-item-highlight"><i class="fa-solid fa-feather me-2"></i> Become a Writer</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Block -->
+  <main style="min-height: 70vh;">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer style="background-color: #0b0f19; color: #94a3b8; padding: 4rem 0 2rem 0; border-top: 1px solid #1e293b; margin-top: 4rem;">
+    <div class="container">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2.5rem; margin-bottom: 3rem;">
+        <div>
+          <a href="/" title="DO Record" class="footer-logo-link">
+            <img src="/static/assets/dorecord-logo.svg" alt="DO Record" class="logo-img footer-logo-img">
+          </a>
+          <p style="font-size: 0.9rem; line-height: 1.6;">
+            DO Record is a state-of-the-art independent digital newsroom platform providing 24/7 uncompromised journalism, breaking updates, and high-impact investigative reporting.
+          </p>
+        </div>
+
+        <div>
+          <h4 style="color: white; margin-bottom: 1rem; font-family: 'Inter', sans-serif;">Categories</h4>
+          <ul style="list-style: none; font-size: 0.9rem; line-height: 2;">
+            {% for cat in categories[:6] %}
+              <li><a href="/category/{{ cat.slug }}" style="transition: color 0.2s;" onmouseover="this.style.color='#e50914'" onmouseout="this.style.color='#94a3b8'">{{ cat.name }}</a></li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        <div>
+          <h4 style="color: white; margin-bottom: 1rem; font-family: 'Inter', sans-serif;">Company</h4>
+          <ul style="list-style: none; font-size: 0.9rem; line-height: 2;">
+            <li><a href="/about">About DO Record</a></li>
+            <li><a href="/contact">Editorial Desk & Contact</a></li>
+            <li><a href="/privacy">Privacy Policy</a></li>
+            <li><a href="/terms">Terms of Service</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 style="color: white; margin-bottom: 1rem; font-family: 'Inter', sans-serif;">Connect</h4>
+          <p style="font-size: 0.9rem; margin-bottom: 1.25rem; color: #94a3b8;">Follow our social media channels for real-time news flashes.</p>
+          <div class="footer-social-links" style="display: flex; gap: 0.85rem; align-items: center; flex-wrap: wrap;">
+            <a href="https://youtube.com/@dorecordmedia?si=Zv5IEVLKWOUtXIgF&amp;utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer" aria-label="YouTube" class="social-icon-link social-youtube" title="DO Record YouTube">
+              <i class="fa-brands fa-youtube"></i>
+            </a>
+            <a href="https://www.instagram.com/dorecordinfo?stkn=MWFtbmNiOWlhZGZ0NQ%3D%3D" target="_blank" rel="noopener noreferrer" aria-label="Instagram" class="social-icon-link social-instagram" title="DO Record Instagram">
+              <i class="fa-brands fa-instagram"></i>
+            </a>
+            <a href="https://www.linkedin.com/company/do-record/?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" class="social-icon-link social-linkedin" title="DO Record LinkedIn">
+              <i class="fa-brands fa-linkedin-in"></i>
+            </a>
+            <a href="https://x.com/DoRecordMedia?utm_source=chatgpt.com" target="_blank" rel="noopener noreferrer" aria-label="Twitter / X" class="social-icon-link social-twitter" title="DO Record Twitter / X">
+              <i class="fa-brands fa-twitter"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <div style="border-top: 1px solid #1e293b; padding-top: 1.5rem; text-align: center; font-size: 0.85rem; color: #64748b;">
+        &copy; 2026 DO Record Media Network. All Rights Reserved. Production Newsroom CMS Engine.
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Live date display
+    const dateEl = document.getElementById('current-date-time');
+    if (dateEl) {
+      dateEl.innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
+    // Hamburger Dropdown & Dark Mode Switcher Logic
+    const hamburgerBtn = document.getElementById('reader-hamburger-btn');
+    const dropdownMenu = document.getElementById('reader-dropdown-menu');
+    const themeToggleBtn = document.getElementById('theme-toggle-btn');
+    const themeLabelText = document.getElementById('theme-label-text');
+
+    function updateThemeUI(isDark) {
+      if (themeToggleBtn) {
+        const iconEl = themeToggleBtn.querySelector('.theme-icon');
+        if (isDark) {
+          if (iconEl) iconEl.className = 'fa-solid fa-sun theme-icon me-2';
+          if (themeLabelText) themeLabelText.innerText = 'Light Mode';
+        } else {
+          if (iconEl) iconEl.className = 'fa-solid fa-moon theme-icon me-2';
+          if (themeLabelText) themeLabelText.innerText = 'Dark Mode';
+        }
+      }
+    }
+
+    // Load saved theme preference
+    if (localStorage.getItem('dorecord_theme') === 'dark') {
+      document.body.classList.add('dark-mode');
+      updateThemeUI(true);
+    } else {
+      updateThemeUI(false);
+    }
+
+    // Theme toggle click handler
+    if (themeToggleBtn) {
+      themeToggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        document.body.classList.toggle('dark-mode');
+        const isDark = document.body.classList.contains('dark-mode');
+        localStorage.setItem('dorecord_theme', isDark ? 'dark' : 'light');
+        updateThemeUI(isDark);
+      });
+    }
+
+    // Dropdown open/close functions
+    function openDropdownMenu() {
+      if (hamburgerBtn && dropdownMenu) {
+        hamburgerBtn.setAttribute('aria-expanded', 'true');
+        hamburgerBtn.setAttribute('aria-label', 'Close menu');
+        dropdownMenu.setAttribute('aria-hidden', 'false');
+        dropdownMenu.classList.add('is-open');
+      }
+    }
+
+    function closeDropdownMenu() {
+      if (hamburgerBtn && dropdownMenu) {
+        hamburgerBtn.setAttribute('aria-expanded', 'false');
+        hamburgerBtn.setAttribute('aria-label', 'Open menu');
+        dropdownMenu.setAttribute('aria-hidden', 'true');
+        dropdownMenu.classList.remove('is-open');
+      }
+    }
+
+    if (hamburgerBtn && dropdownMenu) {
+      hamburgerBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = dropdownMenu.classList.contains('is-open');
+        if (isOpen) {
+          closeDropdownMenu();
+        } else {
+          openDropdownMenu();
+        }
+      });
+
+      // Close menu on click outside
+      document.addEventListener('click', (e) => {
+        if (!dropdownMenu.contains(e.target) && !hamburgerBtn.contains(e.target)) {
+          closeDropdownMenu();
+        }
+      });
+
+      // Close menu on Escape key
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && dropdownMenu.classList.contains('is-open')) {
+          closeDropdownMenu();
+          hamburgerBtn.focus();
+        }
+      });
+
+      // Close menu on navigation link clicks inside dropdown
+      dropdownMenu.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+          closeDropdownMenu();
+        });
+      });
+    }
+
+    // Smooth Header Scroll Behavior (Expand / Shrink)
+    let isScrollTicking = false;
+    const siteHeaderEl = document.querySelector('.site-header');
+
+    function updateHeaderOnScroll() {
+      if (!isScrollTicking) {
+        window.requestAnimationFrame(() => {
+          const currentY = window.scrollY;
+          const isDropdownOpen = dropdownMenu && dropdownMenu.classList.contains('is-open');
+
+          if (siteHeaderEl && !isDropdownOpen) {
+            if (currentY > 30) {
+              siteHeaderEl.classList.add('is-compact');
+            } else {
+              siteHeaderEl.classList.remove('is-compact');
+            }
+          }
+          isScrollTicking = false;
+        });
+        isScrollTicking = true;
+      }
+    }
+
+    window.addEventListener('scroll', updateHeaderOnScroll, { passive: true });
+    updateHeaderOnScroll();
+  </script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+{% extends "public/base_public.html" %}
+
+{% block title %}Search Results for "{{ search_query }}" - DO Record{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 1.25rem;">
+  
+  <div style="border-bottom: 2px solid var(--border-color); padding-bottom: 1.25rem; margin-bottom: 2rem;">
+    <h1 style="font-size: 1.8rem; font-family: 'Inter', sans-serif;">
+      Search Results for <span style="color: var(--brand-red);">"{{ search_query }}"</span>
+    </h1>
+    <p class="search-result-count" style="color: var(--text-muted); font-size: 0.95rem;">Found {{ articles | length }} news articles matching your search query.</p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+    {% for article in articles %}
+    <div class="card article-card">
+      <div class="article-card-img-wrapper">
+        <img src="{{ article.featured_image }}" alt="{{ article.title }}" class="article-card-img">
+        <span class="badge badge-cat" style="position: absolute; top: 0.75rem; left: 0.75rem;">
+          {{ article.category_name }}
+        </span>
+      </div>
+      <div class="article-card-body">
+        <h3 class="article-card-title">
+          <a href="/article/{{ article.slug }}">{{ article.title }}</a>
+        </h3>
+        <p class="article-card-excerpt">{{ article.excerpt }}</p>
+        <div class="article-card-meta">
+          <span>By {{ article.author_name }}</span>
+          <span>{{ article.published_at | strftime }}</span>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 0; color: var(--text-muted);">
+      <i class="fa-solid fa-magnifying-glass" style="font-size: 3rem; margin-bottom: 1rem; color: var(--text-subtle);"></i>
+      <h3>No matching articles found</h3>
+      <p>Try searching for broader keywords, topics, or author names.</p>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

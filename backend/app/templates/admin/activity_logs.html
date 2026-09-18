@@ -1,0 +1,49 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Activity & Audit Trail - DO Record Super Admin{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+  <h1 style="font-size: 1.8rem; font-weight: 800; font-family: 'Inter', sans-serif;">Security Audit Trail & Activity Logs</h1>
+  <p style="color: var(--text-muted); font-size: 0.9rem;">Comprehensive log of authentication events, article workflow actions, and admin operations.</p>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>User</th>
+          <th>Role</th>
+          <th>Action Type</th>
+          <th>Target Object</th>
+          <th>IP / Device Details</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr>
+          <td style="font-size: 0.8rem; white-space: nowrap; color: var(--text-muted);">
+            {{ log.created_at | strftime("%Y-%m-%d %H:%M:%S") }}
+          </td>
+          <td><strong>{{ log.username }}</strong></td>
+          <td><span class="badge" style="background:#e2e8f0; color:#334155;">{{ log.role }}</span></td>
+          <td>
+            <code style="color: var(--brand-red); background: rgba(229,9,20,0.06); padding: 0.2rem 0.5rem; border-radius: 4px;">
+              {{ log.action }}
+            </code>
+          </td>
+          <td>{{ log.target }}</td>
+          <td style="font-size: 0.75rem; color: var(--text-subtle); max-width: 220px; word-break: break-all;">
+            {{ log.ip_address or '127.0.0.1' }} • {{ log.user_agent | truncate_words(6) }}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No activity logs recorded.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

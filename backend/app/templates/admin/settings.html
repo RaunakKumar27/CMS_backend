@@ -1,0 +1,190 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}System Settings & Security - DO Record Super Admin{% endblock %}
+
+{% block content %}
+<script src="/static/js/image_uploader.js"></script>
+<div style="margin-bottom: 2rem;">
+  <h1 style="font-size: 1.8rem; font-weight: 800; font-family: 'Inter', sans-serif;">Settings & Security Center</h1>
+  <p style="color: var(--text-muted); font-size: 0.9rem;">Manage newsroom system configuration, active user sessions, and permission matrices.</p>
+</div>
+
+{% if msg %}
+  <div style="background-color: rgba(34, 197, 94, 0.15); border: 1px solid #16a34a; color: #16a34a; padding: 0.75rem 1rem; border-radius: var(--radius-md); margin-bottom: 1.5rem;">
+    <i class="fa-solid fa-circle-check me-1"></i> {{ msg }}
+  </div>
+{% endif %}
+
+<div style="display: flex; flex-direction: column; gap: 2rem;">
+
+  <!-- ADMIN PROFILE PHOTO -->
+  <div class="card" style="padding: 1.5rem;">
+    <h3 style="font-size: 1.1rem; font-family: 'Inter', sans-serif; font-weight: 700; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+      <i class="fa-solid fa-user-circle" style="color: var(--brand-red);"></i> Profile Picture
+    </h3>
+    <div style="display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;">
+      <img id="admin-avatar-preview" src="{{ current_user.avatar_url or '/static/images/default_avatar.png' }}" alt="{{ current_user.name }}" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid var(--brand-red);">
+      <div style="display:flex;flex-direction:column;gap:.5rem;">
+        <input type="file" id="admin-photo-file" accept="image/jpeg,image/png,image/webp" style="display:none;">
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+          <button type="button" id="admin-photo-upload-button" class="btn btn-primary btn-sm"><i class="fa-solid fa-upload"></i> Upload Image</button>
+          <button type="button" id="admin-photo-save-button" class="btn btn-secondary btn-sm" disabled><i class="fa-solid fa-floppy-disk"></i> Save Profile Picture</button>
+          <button type="button" id="admin-photo-remove-button" class="btn btn-outline btn-sm"><i class="fa-solid fa-trash"></i> Remove Image</button>
+        </div>
+        <span id="admin-photo-status" style="font-size:.78rem;color:var(--text-muted);" aria-live="polite">JPG, PNG, or WebP up to 5 MB</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACCOUNT SECURITY -->
+  <div class="card" style="padding: 1.5rem;">
+    <h3 style="font-size: 1.1rem; font-family: 'Inter', sans-serif; font-weight: 700; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+      <i class="fa-solid fa-key" style="color: var(--brand-red);"></i> Change Password
+    </h3>
+    <p style="color: var(--text-muted); font-size: 0.9rem;">Update your Super Admin password. Your active sessions will be signed out after a successful change.</p>
+    <form action="/account/change-password" method="POST" onsubmit="this.querySelector('button[type=submit]').disabled=true; this.querySelector('button[type=submit]').innerHTML='<i class=\"fa-solid fa-spinner fa-spin\"></i> Changing...';">
+      <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:1rem;">
+        <div class="form-group"><label class="form-label">Current Password</label><input type="password" name="current_password" class="form-control" required autocomplete="current-password"></div>
+        <div class="form-group"><label class="form-label">New Password</label><input type="password" name="new_password" class="form-control" minlength="8" required autocomplete="new-password"></div>
+        <div class="form-group"><label class="form-label">Confirm New Password</label><input type="password" name="confirm_password" class="form-control" minlength="8" required autocomplete="new-password"></div>
+      </div>
+      <button type="submit" class="btn btn-primary"><i class="fa-solid fa-key"></i> Change Password</button>
+    </form>
+  </div>
+  
+  <!-- GENERAL CHANNEL SETTINGS -->
+  <div class="card" style="padding: 1.5rem;">
+    <h3 style="font-size: 1.1rem; font-family: 'Inter', sans-serif; font-weight: 700; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+      <i class="fa-solid fa-sliders" style="color: var(--brand-red);"></i> Channel General Settings
+    </h3>
+
+    <form action="/admin/settings" method="POST">
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+        <div class="form-group">
+          <label class="form-label">Media Brand Name</label>
+          <input type="text" name="site_name" class="form-control" value="{{ settings.site_name if settings else 'DO Record' }}" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Session Timeout (Minutes)</label>
+          <input type="number" name="session_timeout_minutes" class="form-control" value="{{ settings.session_timeout_minutes if settings else 1440 }}">
+        </div>
+
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label class="form-label">Site Meta Description</label>
+          <textarea name="site_description" class="form-control" style="min-height: 70px;">{{ settings.site_description if settings else '' }}</textarea>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Settings</button>
+    </form>
+  </div>
+
+  <!-- ACTIVE SESSIONS & FORCE LOGOUT -->
+  <div class="card" style="padding: 1.5rem;">
+    <h3 style="font-size: 1.1rem; font-family: 'Inter', sans-serif; font-weight: 700; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; display: flex; align-items: center; justify-content: space-between;">
+      <span><i class="fa-solid fa-user-shield" style="color: var(--brand-blue);"></i> Active User Sessions</span>
+      <span class="badge badge-status-published">{{ active_sessions | length }} Sessions Active</span>
+    </h3>
+
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>IP Address</th>
+            <th>Browser / User Agent</th>
+            <th>Login Time</th>
+            <th style="text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for sess in active_sessions %}
+          <tr>
+            <td><strong>{{ sess.username }}</strong></td>
+            <td><code>{{ sess.ip_address }}</code></td>
+            <td style="font-size: 0.8rem; color: var(--text-muted); max-width: 280px; word-break: break-all;">{{ sess.user_agent }}</td>
+            <td style="font-size: 0.8rem;">{{ sess.created_at | strftime("%b %d, %H:%M") }}</td>
+            <td style="text-align: right;">
+              <form action="/admin/settings/force-logout" method="POST" onsubmit="return confirm('Force logout session for {{ sess.username }}?');">
+                <input type="hidden" name="token" value="{{ sess.token }}">
+                <button type="submit" class="btn btn-danger btn-sm"><i class="fa-solid fa-power-off"></i> Force Logout</button>
+              </form>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No active sessions found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- GRANULAR ROLE PERMISSION MATRIX -->
+  <div class="card" style="padding: 1.5rem;">
+    <h3 style="font-size: 1.1rem; font-family: 'Inter', sans-serif; font-weight: 700; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+      <i class="fa-solid fa-key" style="color: var(--brand-purple);"></i> Role & Permission Matrix
+    </h3>
+
+    <div class="table-responsive">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Permission Key</th>
+            <th>Super Admin</th>
+            <th>Writer</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for perm in permissions_list %}
+          <tr>
+            <td><code>{{ perm }}</code></td>
+            <td><span class="badge badge-status-published"><i class="fa-solid fa-check"></i> Allowed</span></td>
+            <td>
+              {% if perm in writer_perms %}
+                <span class="badge badge-status-published"><i class="fa-solid fa-check"></i> Allowed</span>
+              {% else %}
+                <span class="badge badge-status-rejected"><i class="fa-solid fa-xmark"></i> Denied</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+<script>
+  const adminPhotoFile = document.getElementById('admin-photo-file');
+  const adminPhotoStatus = document.getElementById('admin-photo-status');
+  document.getElementById('admin-photo-upload-button').addEventListener('click', () => adminPhotoFile.click());
+  const adminPhotoSave = document.getElementById('admin-photo-save-button');
+  adminPhotoFile.addEventListener('change', event => {
+    const file = event.target.files[0];
+    if (!file) return;
+    const preview = document.getElementById('admin-avatar-preview');
+    const reader = new FileReader();
+    reader.onload = loadEvent => { preview.src = loadEvent.target.result; };
+    reader.readAsDataURL(file);
+    adminPhotoSave.disabled = false;
+    adminPhotoStatus.textContent = file.name + ' selected. Click Save Profile Picture.';
+  });
+  adminPhotoSave.addEventListener('click', async () => {
+    const url = await window.uploadCmsImage(adminPhotoFile.files[0], {
+      input: adminPhotoFile,
+      endpoint: '/admin/settings/profile-photo',
+      setStatus: message => { adminPhotoStatus.textContent = message; }
+    });
+    if (url) { document.getElementById('admin-avatar-preview').src = url; adminPhotoSave.disabled = true; }
+  });
+  document.getElementById('admin-photo-remove-button').addEventListener('click', async () => {
+    const response = await fetch('/admin/settings/profile-photo/remove', { method: 'POST', credentials: 'same-origin' });
+    const result = await response.json().catch(() => ({}));
+    if (response.ok && result.success) {
+      document.getElementById('admin-avatar-preview').src = result.url;
+      adminPhotoStatus.textContent = 'Default profile image restored.';
+    }
+  });
+</script>
+{% endblock %}

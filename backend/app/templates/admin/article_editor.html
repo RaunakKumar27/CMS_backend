@@ -1,0 +1,259 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}{% if article %}Edit Article - {{ article.title }}{% else %}Create New Article{% endif %} - DO Record CMS{% endblock %}
+
+{% block content %}
+<form action="{% if article %}/admin/articles/{{ article._id }}{% else %}/admin/articles/create{% endif %}" method="POST" id="article-form">
+
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <a href="/admin/articles" style="font-size: 0.85rem; color: var(--text-muted);"><i class="fa-solid fa-arrow-left me-1"></i> Back to Articles</a>
+      <h1 style="font-size: 1.8rem; font-weight: 800; font-family: 'Inter', sans-serif; margin-top: 0.25rem;">
+        {% if article %}Edit News Article{% else %}Create News Article{% endif %}
+      </h1>
+    </div>
+
+    <!-- Editorial Action Buttons -->
+    <div style="display: flex; gap: 0.75rem;">
+      {% if article %}<a href="/admin/web-stories/create?from_article={{ article._id }}" class="btn btn-outline"><i class="fa-solid fa-bolt"></i> Create Web Story</a>{% endif %}
+      <button type="submit" name="action_type" value="draft" class="btn btn-secondary"><i class="fa-solid fa-floppy-disk"></i> Save Draft</button>
+      <button type="submit" name="action_type" value="publish" class="btn btn-primary"><i class="fa-solid fa-paper-plane"></i> Publish Now</button>
+    </div>
+  </div>
+
+  <!-- Rejection Banner if rejected -->
+  {% if article and article.status == 'rejected' and article.rejection_feedback %}
+  <div style="background-color: rgba(220, 38, 38, 0.1); border: 1px solid #dc2626; border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 2rem;">
+    <h4 style="color: #ef4444; margin-bottom: 0.4rem; font-family: 'Inter', sans-serif;"><i class="fa-solid fa-circle-exclamation me-1"></i> Editorial Rejection Feedback:</h4>
+    <p style="color: var(--text-main); font-size: 0.95rem;">{{ article.rejection_feedback }}</p>
+  </div>
+  {% endif %}
+
+  <div style="display: grid; grid-template-columns: 2.5fr 1fr; gap: 2rem;">
+    
+    <!-- LEFT: MAIN EDITOR -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+      
+      <div class="card" style="padding: 1.5rem;">
+        <div class="form-group">
+          <label class="form-label">Article Headline / Title *</label>
+          <input type="text" name="title" id="article-title" class="form-control" style="font-size: 1.25rem; font-weight: 700;" placeholder="Enter compelling news headline..." value="{{ article.title if article else '' }}" required onkeyup="autoGenerateSlug()">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">SEO URL Slug</label>
+          <input type="text" name="slug" id="article-slug" class="form-control" style="font-size: 0.85rem;" placeholder="article-url-slug" value="{{ article.slug if article else '' }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Short Summary / Excerpt *</label>
+          <textarea name="excerpt" class="form-control" style="min-height: 80px;" placeholder="Provide a 2-3 sentence overview for news feeds and Google search snippets..." required>{{ article.excerpt if article else '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Article Content Body *</label>
+          <!-- Rich Toolbar -->
+          <div style="background-color: var(--bg-surface-elevated); border: 1px solid var(--border-color); border-bottom: none; padding: 0.5rem; border-top-left-radius: var(--radius-md); border-top-right-radius: var(--radius-md); display: flex; gap: 0.4rem; flex-wrap: wrap;">
+            <button type="button" onclick="formatDoc('bold')" class="btn btn-outline btn-sm"><i class="fa-solid fa-bold"></i></button>
+            <button type="button" onclick="formatDoc('italic')" class="btn btn-outline btn-sm"><i class="fa-solid fa-italic"></i></button>
+            <button type="button" onclick="formatDoc('formatBlock', 'h2')" class="btn btn-outline btn-sm">H2</button>
+            <button type="button" onclick="formatDoc('formatBlock', 'h3')" class="btn btn-outline btn-sm">H3</button>
+            <button type="button" onclick="formatDoc('formatBlock', 'blockquote')" class="btn btn-outline btn-sm"><i class="fa-solid fa-quote-right"></i></button>
+            <button type="button" onclick="formatDoc('insertUnorderedList')" class="btn btn-outline btn-sm"><i class="fa-solid fa-list-ul"></i></button>
+            <button type="button" onclick="insertImagePrompt()" class="btn btn-outline btn-sm"><i class="fa-solid fa-image"></i> Insert Image</button>
+          </div>
+          <textarea name="body" id="rich-body-textarea" class="form-control" style="border-top-left-radius: 0; border-top-right-radius: 0; min-height: 380px; font-family: 'Merriweather', serif; font-size: 1.05rem;" required>{{ article.body if article else '' }}</textarea>
+        </div>
+      </div>
+
+      <!-- SEO METADATA CARD -->
+      <div class="card" style="padding: 1.5rem;">
+        <h3 style="font-size: 1.05rem; font-family: 'Inter', sans-serif; font-weight: 700; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+          <i class="fa-solid fa-chart-line" style="color: var(--brand-red);"></i> SEO Meta Settings
+        </h3>
+        
+        <div class="form-group">
+          <label class="form-label">SEO Meta Title</label>
+          <input type="text" name="seo_title" class="form-control" placeholder="Meta title for search engines" value="{{ article.seo_title if article else '' }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">SEO Description</label>
+          <textarea name="seo_description" class="form-control" style="min-height: 70px;" placeholder="Meta description for search engine listings">{{ article.seo_description if article else '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">SEO Keywords</label>
+          <input type="text" name="seo_keywords" class="form-control" placeholder="Comma separated e.g. AI, Supercomputing, India" value="{{ article.seo_keywords if article else '' }}">
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: METADATA & PUBLISHING SIDEBAR -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+      
+      <!-- Category & Tags -->
+      <div class="card" style="padding: 1.25rem;">
+        <h4 style="font-size: 0.95rem; font-family: 'Inter', sans-serif; font-weight: 700; margin-bottom: 1rem;">Publishing Parameters</h4>
+
+        <div class="form-group">
+          <label class="form-label">Category *</label>
+          <select name="category_id" class="form-control" required>
+            <option value="">Select Category...</option>
+            {% for cat in categories %}
+              <option value="{{ cat._id }}" {% if article and article.category_id == cat._id %}selected{% endif %}>{{ cat.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Tags (comma separated)</label>
+          <input type="text" name="tags" class="form-control" placeholder="e.g. AI, Elections, Markets" value="{{ article.tags | join(', ') if article and article.tags else '' }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Cover / Featured Image</label>
+          <input type="hidden" name="featured_image" id="featured-img-input" value="{{ article.featured_image if article else 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80' }}">
+          <input type="file" id="featured-img-file" class="form-control" accept="image/jpeg,image/png,image/webp">
+          <div style="display:flex; gap:.5rem; margin-top:.5rem; flex-wrap:wrap;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('featured-img-file').click()"><i class="fa-solid fa-upload"></i> Upload Image</button>
+            <button type="button" id="remove-featured-img" class="btn btn-outline btn-sm"><i class="fa-solid fa-trash"></i> Remove</button>
+          </div>
+          <p id="featured-img-status" style="font-size:.78rem;color:var(--text-muted);margin:.45rem 0 0;" aria-live="polite"></p>
+          <div style="margin-top: 0.75rem; border-radius: var(--radius-md); overflow: hidden; height: 140px; background-color: #0f172a;">
+            <img id="cover-preview-img" src="{{ article.featured_image if article else 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80' }}" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;">
+          </div>
+        </div>
+      </div>
+
+      <!-- Toggles & Status -->
+      <div class="card" style="padding: 1.25rem;">
+        <h4 style="font-size: 0.95rem; font-family: 'Inter', sans-serif; font-weight: 700; margin-bottom: 1rem;">Display Options</h4>
+
+        <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem;">
+          <input type="checkbox" id="is_featured" name="is_featured" value="true" {% if article and article.is_featured %}checked{% endif %} style="width: 18px; height: 18px; accent-color: var(--brand-red);">
+          <label for="is_featured" style="font-size: 0.9rem; font-weight: 600; cursor: pointer;">Set as Featured Hero Article</label>
+        </div>
+
+        <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem;">
+          <input type="checkbox" id="is_breaking" name="is_breaking" value="true" {% if article and article.is_breaking %}checked{% endif %} style="width: 18px; height: 18px; accent-color: var(--brand-red);">
+          <label for="is_breaking" style="font-size: 0.9rem; font-weight: 600; cursor: pointer;">Flag as Breaking News</label>
+        </div>
+
+        <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem;">
+          <input type="checkbox" id="is_web_story" name="is_web_story" value="true" {% if article and article.is_web_story %}checked{% endif %} style="width: 18px; height: 18px; accent-color: var(--brand-red);">
+          <label for="is_web_story" style="font-size: 0.9rem; font-weight: 600; cursor: pointer;">Show in Web Stories</label>
+        </div>
+      </div>
+
+      <!-- Editorial Approval Controls (Super Admin Only) -->
+      {% if article %}
+      <div class="card" style="padding: 1.25rem; border-color: var(--brand-gold); background-color: rgba(245, 158, 11, 0.03);">
+        <h4 style="font-size: 0.95rem; font-family: 'Inter', sans-serif; font-weight: 700; margin-bottom: 1rem; color: var(--brand-gold);">
+          <i class="fa-solid fa-gavel"></i> Editorial Approval Controls
+        </h4>
+
+        {% if article.status == 'pending' or article.status == 'draft' %}
+          <button type="submit" name="action_type" value="approve" class="btn btn-success" style="width: 100%; margin-bottom: 0.75rem;">
+            <i class="fa-solid fa-circle-check"></i> Approve & Publish Story
+          </button>
+
+          <button type="button" onclick="showRejectModal()" class="btn btn-danger" style="width: 100%;">
+            <i class="fa-solid fa-circle-xmark"></i> Reject Article with Feedback
+          </button>
+        {% elif article.status == 'published' %}
+          <button type="submit" name="action_type" value="unpublish" class="btn btn-secondary" style="width: 100%;">
+            <i class="fa-solid fa-ban"></i> Unpublish (Move to Draft)
+          </button>
+        {% endif %}
+      </div>
+      {% endif %}
+
+    </div>
+
+  </div>
+</form>
+
+<!-- REJECTION FEEDBACK MODAL -->
+{% if article %}
+<div class="modal-backdrop" id="reject-modal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 style="font-size: 1.1rem; font-family: 'Inter', sans-serif;"><i class="fa-solid fa-circle-xmark" style="color: #ef4444;"></i> Reject Article</h3>
+      <button onclick="hideRejectModal()" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+    </div>
+    <form action="/admin/articles/{{ article._id }}/reject" method="POST">
+      <div class="modal-body">
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">
+          Specify the editorial rejection reason or required modifications for the writer:
+        </p>
+        <textarea name="feedback" class="form-control" style="min-height: 120px;" placeholder="e.g. Please verify source quotes and add second corroborating statement..." required></textarea>
+      </div>
+      <div class="modal-footer">
+        <button type="button" onclick="hideRejectModal()" class="btn btn-outline">Cancel</button>
+        <button type="submit" class="btn btn-danger">Confirm Rejection</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<script>
+  function autoGenerateSlug() {
+    const title = document.getElementById('article-title').value;
+    const slugInput = document.getElementById('article-slug');
+    if (!slugInput.value || slugInput.dataset.manual !== 'true') {
+      slugInput.value = title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').trim().replace(/\s+/g, '-');
+    }
+  }
+
+  const featuredImageInput = document.getElementById('featured-img-input');
+  const featuredImageFile = document.getElementById('featured-img-file');
+  const featuredImagePreview = document.getElementById('cover-preview-img');
+  const featuredImageStatus = document.getElementById('featured-img-status');
+  const removeFeaturedImage = document.getElementById('remove-featured-img');
+  function setFeaturedImageStatus(message) { featuredImageStatus.textContent = message; }
+  async function uploadFeaturedImage(file) {
+    if (!file) { setFeaturedImageStatus('Please select an image.'); return; }
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) { setFeaturedImageStatus('Only JPG, JPEG, PNG and WebP images are allowed.'); return; }
+    if (file.size > 5 * 1024 * 1024) { setFeaturedImageStatus('Image must be 5 MB or smaller.'); return; }
+    const body = new FormData(); body.append('file', file);
+    featuredImageFile.disabled = true; setFeaturedImageStatus('Uploading image...');
+    try {
+      const response = await fetch('/admin/articles/upload-image', { method: 'POST', body, credentials: 'same-origin' });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.success || !result.url) throw new Error(result.detail || 'Image upload failed.');
+      featuredImageInput.value = result.url; featuredImagePreview.src = result.url; featuredImagePreview.style.display = 'block'; setFeaturedImageStatus('Image uploaded.');
+    } catch (error) { setFeaturedImageStatus(error.message || 'Image upload failed.'); }
+    finally { featuredImageFile.disabled = false; featuredImageFile.value = ''; }
+  }
+  featuredImageFile.addEventListener('change', event => uploadFeaturedImage(event.target.files[0]));
+  removeFeaturedImage.addEventListener('click', () => { featuredImageInput.value = ''; featuredImagePreview.removeAttribute('src'); featuredImagePreview.style.display = 'none'; setFeaturedImageStatus('Image removed.'); });
+
+  function formatDoc(cmd, value = null) {
+    const textarea = document.getElementById('rich-body-textarea');
+    if (cmd === 'bold') textarea.value += ' **bold text** ';
+    else if (cmd === 'italic') textarea.value += ' *italic text* ';
+    else if (cmd === 'formatBlock') textarea.value += '\n<' + value + '>Heading Text</' + value + '>\n';
+    else if (cmd === 'blockquote') textarea.value += '\n<blockquote>"Quote snippet here"</blockquote>\n';
+    else if (cmd === 'insertUnorderedList') textarea.value += '\n<ul>\n  <li>Item 1</li>\n  <li>Item 2</li>\n</ul>\n';
+  }
+
+  function insertImagePrompt() {
+    const url = prompt('Enter Image URL to insert into article body:');
+    if (url) {
+      const textarea = document.getElementById('rich-body-textarea');
+      textarea.value += '\n<img src="' + url + '" alt="Article Image" style="width:100%; border-radius:8px; margin:1rem 0;">\n';
+    }
+  }
+
+  function showRejectModal() {
+    document.getElementById('reject-modal').classList.add('show');
+  }
+
+  function hideRejectModal() {
+    document.getElementById('reject-modal').classList.remove('show');
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,228 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Dashboard Overview - DO Record Super Admin{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+  <h1 style="font-size: 1.8rem; font-weight: 800; font-family: 'Inter', sans-serif; margin-bottom: 0.25rem;">
+    Newsroom Operations Control Center
+  </h1>
+  <p style="color: var(--text-muted); font-size: 0.9rem;">
+    Real-time analytics, editorial review queue, and active writer statistics for DO Record.
+  </p>
+</div>
+
+<!-- STATS CARDS GRID -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon-wrapper" style="background-color: rgba(37, 99, 235, 0.1); color: var(--brand-blue);">
+      <i class="fa-solid fa-newspaper"></i>
+    </div>
+    <div>
+      <div class="stat-value">{{ stats.total_articles }}</div>
+      <div class="stat-label">Total Articles</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon-wrapper" style="background-color: rgba(22, 163, 74, 0.1); color: #16a34a;">
+      <i class="fa-solid fa-circle-check"></i>
+    </div>
+    <div>
+      <div class="stat-value">{{ stats.published_articles }}</div>
+      <div class="stat-label">Published</div>
+    </div>
+  </div>
+
+  <div class="stat-card" style="{% if stats.pending_articles > 0 %}border-color: var(--brand-gold); background-color: rgba(245, 158, 11, 0.05);{% endif %}">
+    <div class="stat-icon-wrapper" style="background-color: rgba(245, 158, 11, 0.15); color: var(--brand-gold);">
+      <i class="fa-solid fa-clock-rotate-left"></i>
+    </div>
+    <div>
+      <div class="stat-value">{{ stats.pending_articles }}</div>
+      <div class="stat-label">Pending Approval</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon-wrapper" style="background-color: rgba(220, 38, 38, 0.1); color: var(--brand-red);">
+      <i class="fa-solid fa-eye"></i>
+    </div>
+    <div>
+      <div class="stat-value">{{ stats.total_views }}</div>
+      <div class="stat-label">Total Readers / Views</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon-wrapper" style="background-color: rgba(124, 58, 237, 0.1); color: var(--brand-purple);">
+      <i class="fa-solid fa-users"></i>
+    </div>
+    <div>
+      <div class="stat-value">{{ stats.total_writers }}</div>
+      <div class="stat-label">Active Writers</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon-wrapper" style="background-color: rgba(100, 116, 139, 0.1); color: var(--text-muted);">
+      <i class="fa-solid fa-folder-tree"></i>
+    </div>
+    <div>
+      <div class="stat-value">{{ stats.total_categories }}</div>
+      <div class="stat-label">Categories</div>
+    </div>
+  </div>
+</div>
+
+<!-- QUICK ACTIONS BAR -->
+<div style="background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+  <span style="font-weight: 700; font-size: 0.9rem;"><i class="fa-solid fa-bolt" style="color: var(--brand-red);"></i> Quick Actions:</span>
+  <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+    <a href="/admin/articles/create" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> New Article</a>
+    <a href="/admin/writers?create=true" class="btn btn-secondary btn-sm"><i class="fa-solid fa-user-plus"></i> Add Writer</a>
+    <a href="/admin/categories" class="btn btn-secondary btn-sm"><i class="fa-solid fa-folder"></i> Categories</a>
+    <a href="/admin/homepage" class="btn btn-secondary btn-sm"><i class="fa-solid fa-sliders"></i> Homepage Manager</a>
+    <a href="/admin/media" class="btn btn-secondary btn-sm"><i class="fa-solid fa-images"></i> Media Library</a>
+    <a href="/admin/settings" class="btn btn-outline btn-sm"><i class="fa-solid fa-shield"></i> Security Settings</a>
+  </div>
+</div>
+
+<!-- DASHBOARD CHARTS & RECENT CONTENT -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+  
+  <!-- LEFT: PENDING APPROVAL QUEUE -->
+  <div class="card" style="padding: 1.5rem;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+      <h3 style="font-size: 1.1rem; font-family: 'Inter', sans-serif; font-weight: 700;">
+        <i class="fa-solid fa-triangle-exclamation" style="color: var(--brand-gold);"></i> Editorial Review Queue
+      </h3>
+      <a href="/admin/articles?status=pending" style="font-size: 0.8rem; font-weight: 700; color: var(--brand-red);">View All Pending</a>
+    </div>
+
+    {% if pending_articles %}
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Author</th>
+              <th>Category</th>
+              <th>Submitted</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for art in pending_articles %}
+            <tr>
+              <td>
+                <a href="/admin/articles/{{ art._id }}" style="font-weight: 600;">{{ art.title | truncate_words(7) }}</a>
+              </td>
+              <td>{{ art.author_name }}</td>
+              <td><span class="badge badge-cat">{{ art.category_name }}</span></td>
+              <td>{{ art.updated_at | strftime }}</td>
+              <td>
+                <a href="/admin/articles/{{ art._id }}" class="btn btn-primary btn-sm" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Review</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div style="text-align: center; padding: 2.5rem 0; color: var(--text-muted);">
+        <i class="fa-solid fa-circle-check" style="font-size: 2.5rem; color: #16a34a; margin-bottom: 0.5rem;"></i>
+        <p style="font-weight: 600;">Editorial queue is clean!</p>
+        <p style="font-size: 0.85rem;">All submitted articles have been reviewed.</p>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- RIGHT: TOP PERFORMING ARTICLES CHART & BREAKDOWN -->
+  <div class="card" style="padding: 1.5rem;">
+    <h3 style="font-size: 1.1rem; font-family: 'Inter', sans-serif; font-weight: 700; margin-bottom: 1.25rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+      <i class="fa-solid fa-chart-pie" style="color: var(--brand-blue);"></i> Article Status Distribution
+    </h3>
+
+    <div style="display: flex; flex-direction: column; gap: 1rem;">
+      <div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem;">
+          <span>Published ({{ stats.published_articles }})</span>
+          <span>{{ (stats.published_articles / (stats.total_articles or 1) * 100) | round(1) }}%</span>
+        </div>
+        <div style="background-color: var(--bg-surface-elevated); height: 10px; border-radius: 5px; overflow: hidden;">
+          <div style="background-color: #16a34a; height: 100%; width: {{ (stats.published_articles / (stats.total_articles or 1) * 100) }}%;"></div>
+        </div>
+      </div>
+
+      <div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem;">
+          <span>Drafts ({{ stats.draft_articles }})</span>
+          <span>{{ (stats.draft_articles / (stats.total_articles or 1) * 100) | round(1) }}%</span>
+        </div>
+        <div style="background-color: var(--bg-surface-elevated); height: 10px; border-radius: 5px; overflow: hidden;">
+          <div style="background-color: #64748b; height: 100%; width: {{ (stats.draft_articles / (stats.total_articles or 1) * 100) }}%;"></div>
+        </div>
+      </div>
+
+      <div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem;">
+          <span>Pending Review ({{ stats.pending_articles }})</span>
+          <span>{{ (stats.pending_articles / (stats.total_articles or 1) * 100) | round(1) }}%</span>
+        </div>
+        <div style="background-color: var(--bg-surface-elevated); height: 10px; border-radius: 5px; overflow: hidden;">
+          <div style="background-color: var(--brand-gold); height: 100%; width: {{ (stats.pending_articles / (stats.total_articles or 1) * 100) }}%;"></div>
+        </div>
+      </div>
+
+      <div>
+        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem;">
+          <span>Rejected / Feedback ({{ stats.rejected_articles }})</span>
+          <span>{{ (stats.rejected_articles / (stats.total_articles or 1) * 100) | round(1) }}%</span>
+        </div>
+        <div style="background-color: var(--bg-surface-elevated); height: 10px; border-radius: 5px; overflow: hidden;">
+          <div style="background-color: var(--brand-red); height: 100%; width: {{ (stats.rejected_articles / (stats.total_articles or 1) * 100) }}%;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- RECENT SYSTEM ACTIVITY LOGS -->
+<div class="card" style="padding: 1.5rem;">
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+    <h3 style="font-size: 1.1rem; font-family: 'Inter', sans-serif; font-weight: 700;">
+      <i class="fa-solid fa-list-check" style="color: var(--brand-purple);"></i> Recent Audit & Security Activity Logs
+    </h3>
+    <a href="/admin/activity-logs" style="font-size: 0.8rem; font-weight: 700; color: var(--brand-red);">Full Audit Log</a>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Role</th>
+          <th>Action</th>
+          <th>Target</th>
+          <th>Timestamp</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in recent_logs %}
+        <tr>
+          <td><strong>{{ log.username }}</strong></td>
+          <td><span class="badge" style="background:#e2e8f0; color:#334155;">{{ log.role }}</span></td>
+          <td><code style="color: var(--brand-red);">{{ log.action }}</code></td>
+          <td>{{ log.target }}</td>
+          <td>{{ log.created_at | strftime("%b %d, %H:%M:%S") }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No recent logs recorded.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

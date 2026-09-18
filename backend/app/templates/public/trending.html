@@ -1,0 +1,74 @@
+{% extends "public/base_public.html" %}
+
+{% block title %}Trending News | DO Record{% endblock %}
+{% block meta_description %}The latest and most talked-about stories from DO Record, ranked by reader interest.{% endblock %}
+
+{% block content %}
+<div class="container trending-page">
+  <nav class="trending-breadcrumb" aria-label="Breadcrumb">
+    <a href="/">Home</a>
+    <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+    <span aria-current="page">Trending News</span>
+  </nav>
+
+  <header class="trending-page-header">
+    <div>
+      <span class="trending-kicker"><i class="fa-solid fa-fire" aria-hidden="true"></i> DO RECORD NEWS DESK</span>
+      <h1>Trending News</h1>
+      <p>Latest and most talked-about stories from DO Record.</p>
+    </div>
+    {% if total_articles %}
+    <span class="trending-count">{{ total_articles }} published stories</span>
+    {% endif %}
+  </header>
+
+  {% if articles %}
+  <div class="trending-grid" aria-label="Trending news stories">
+    {% for article in articles %}
+    <a class="card trending-card" href="/article/{{ article.slug }}" aria-label="Read {{ article.title }}">
+      <div class="trending-card-image">
+        {% if article.featured_image %}
+        <img src="{{ article.featured_image }}" alt="{{ article.title }}" loading="lazy">
+        {% else %}
+        <div class="trending-image-placeholder" aria-hidden="true"><i class="fa-solid fa-newspaper"></i></div>
+        {% endif %}
+        <span class="trending-rank">#{{ ((page - 1) * 12) + loop.index }}</span>
+        <span class="trending-badge"><i class="fa-solid fa-fire" aria-hidden="true"></i> Trending</span>
+      </div>
+      <div class="trending-card-body">
+        <span class="badge badge-cat">{{ article.category_name or 'News' }}</span>
+        <h2>{{ article.title }}</h2>
+        <p>{{ article.excerpt | truncate_words(24) }}</p>
+        <div class="trending-card-meta">
+          <span>By <strong>{{ article.author_name or 'DO Record Desk' }}</strong></span>
+          <span>{{ article.published_at | strftime }}</span>
+        </div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+
+  {% if total_pages > 1 %}
+  <nav class="trending-pagination" aria-label="Trending news pages">
+    {% if page > 1 %}<a class="btn btn-outline btn-sm" href="/trending?page={{ page - 1 }}"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Previous</a>{% endif %}
+    <div class="trending-page-numbers">
+      {% for page_number in range(1, total_pages + 1) %}
+        {% if page_number == page %}<span class="trending-page-current" aria-current="page">{{ page_number }}</span>
+        {% elif page_number <= 3 or page_number > total_pages - 2 or (page_number >= page - 1 and page_number <= page + 1) %}<a href="/trending?page={{ page_number }}">{{ page_number }}</a>{% endif %}
+      {% endfor %}
+    </div>
+    {% if page < total_pages %}<a class="btn btn-outline btn-sm" href="/trending?page={{ page + 1 }}">Next <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>{% endif %}
+  </nav>
+  {% endif %}
+  {% else %}
+  <section class="trending-empty-state">
+    <i class="fa-solid fa-fire" aria-hidden="true"></i>
+    <h2>No trending stories available right now.</h2>
+    <p>Check back soon for the stories readers are following most closely.</p>
+    <a class="btn btn-primary" href="/">Return to homepage</a>
+  </section>
+  {% endif %}
+  </div>
+
+</div>
+{% endblock %}

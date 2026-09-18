@@ -1,0 +1,17 @@
+{% extends "public/base_public.html" %}
+
+{% block title %}{{ title }} - DO Record{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3rem 0; max-width: 900px;">
+  <div style="background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 3rem; box-shadow: var(--shadow-sm);">
+    <h1 style="font-size: 2.25rem; margin-bottom: 1.5rem; border-bottom: 2px solid var(--brand-red); padding-bottom: 0.75rem; font-family: 'Inter', sans-serif;">
+      {{ title }}
+    </h1>
+
+    <div style="font-size: 1.05rem; line-height: 1.8; color: var(--text-main);">
+      {{ content_body | safe }}
+    </div>
+  </div>
+</div>
+{% endblock %}

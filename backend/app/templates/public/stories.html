@@ -1,0 +1,36 @@
+{% extends "public/base_public.html" %}
+
+{% block title %}Web Stories | DO Record{% endblock %}
+
+{% block content %}
+<div class="container">
+  <section style="margin: 3rem 0;">
+    <div style="max-width: 700px; margin-bottom: 2rem;">
+      <p style="font-size: 0.78rem; font-weight: 800; letter-spacing: 0.1em; color: var(--brand-red); margin-bottom: 0.5rem;">DO RECORD VISUAL NEWS</p>
+      <h1 style="font-size: clamp(2rem, 5vw, 3.5rem); margin-bottom: 0.75rem;">Web <span style="color: var(--brand-red);">Stories</span></h1>
+      <p style="color: var(--text-muted); font-size: 1.05rem; line-height: 1.6;">Quick, visual updates from the stories shaping the day.</p>
+    </div>
+
+    {% if stories %}
+    <div class="stories-grid">
+      {% for story in stories %}
+      <a href="/article/{{ story.slug }}" class="web-story-card story-template-{{ story.web_story_template or 'classic' }}" aria-label="Read {{ story.title }}">
+        <img src="{{ story.featured_image }}" alt="{{ story.title }}" loading="lazy">
+        <span class="web-story-gradient"></span>
+        <span class="web-story-progress" aria-hidden="true"></span>
+        <span class="web-story-copy">
+          <span class="web-story-category">{{ story.category_name }}</span>
+          <strong>{{ story.title }}</strong>
+        </span>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div style="padding: 4rem 1.5rem; text-align: center; border: 1px dashed var(--border-color); border-radius: var(--radius-lg); color: var(--text-muted);">
+      <i class="fa-solid fa-bolt" style="font-size: 2rem; color: var(--brand-red); margin-bottom: 1rem;"></i>
+      <p style="margin: 0;">New web stories will appear here soon.</p>
+    </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

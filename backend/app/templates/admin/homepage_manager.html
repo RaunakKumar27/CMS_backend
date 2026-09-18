@@ -1,0 +1,75 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Homepage Manager - DO Record Super Admin{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 2rem;">
+  <h1 style="font-size: 1.8rem; font-weight: 800; font-family: 'Inter', sans-serif;">Visual Homepage Manager</h1>
+  <p style="color: var(--text-muted); font-size: 0.9rem;">Control live ticker banners, hero spotlight selection, and featured category order.</p>
+</div>
+
+<form action="/admin/homepage" method="POST">
+  <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+    
+    <!-- LEFT: HOMEPAGE SECTIONS CONTROL -->
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+      
+      <!-- BREAKING NEWS TICKER CONTROL -->
+      <div class="card" style="padding: 1.5rem; border-color: var(--brand-red);">
+        <h3 style="font-size: 1.1rem; font-family: 'Inter', sans-serif; font-weight: 700; margin-bottom: 1rem; color: var(--brand-red);">
+          <i class="fa-solid fa-bolt"></i> Breaking News Ticker Banner
+        </h3>
+
+        <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+          <input type="checkbox" id="breaking_news_active" name="breaking_news_active" value="true" {% if settings.breaking_news_active %}checked{% endif %} style="width: 18px; height: 18px; accent-color: var(--brand-red);">
+          <label for="breaking_news_active" style="font-weight: 700; cursor: pointer;">Enable Live Breaking News Ticker on Public Site</label>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Ticker Text Message *</label>
+          <textarea name="breaking_news_text" class="form-control" style="min-height: 80px;" required>{{ settings.breaking_news_text if settings else '' }}</textarea>
+        </div>
+      </div>
+
+      <!-- HERO FEATURED ARTICLE SELECTOR -->
+      <div class="card" style="padding: 1.5rem;">
+        <h3 style="font-size: 1.1rem; font-family: 'Inter', sans-serif; font-weight: 700; margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+          <i class="fa-solid fa-star" style="color: var(--brand-gold);"></i> Primary Hero Article Spotlight
+        </h3>
+
+        <div class="form-group">
+          <label class="form-label">Pin Hero Story</label>
+          <select name="hero_article_id" class="form-control">
+            <option value="">Auto-select newest published featured article</option>
+            {% for art in articles %}
+              <option value="{{ art._id }}" {% if settings and settings.hero_article_id == art._id %}selected{% endif %}>
+                [{{ art.category_name }}] {{ art.title }} (By {{ art.author_name }})
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <button type="submit" class="btn btn-primary" style="padding: 0.75rem 2rem; font-size: 1rem;">
+          <i class="fa-solid fa-floppy-disk"></i> Publish Homepage Changes
+        </button>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: PREVIEW SUMMARY -->
+    <div>
+      <div class="card" style="padding: 1.25rem;">
+        <h4 style="font-size: 1rem; font-family: 'Inter', sans-serif; font-weight: 700; margin-bottom: 1rem;">Live Status Preview</h4>
+        
+        <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.8;">
+          <p><strong>Ticker Status:</strong> {% if settings.breaking_news_active %}<span class="badge badge-status-published">ACTIVE</span>{% else %}<span class="badge badge-status-draft">OFF</span>{% endif %}</p>
+          <p><strong>Pinned Hero:</strong> {{ hero_article.title if hero_article else 'Auto-latest' }}</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Writer Desk - DO Record CMS{% endblock %}</title>
+  <link rel="icon" type="image/svg+xml" href="/static/assets/dorecord-logo.svg">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/design_system.css">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <div class="app-layout">
+    
+    <!-- WRITER SIDEBAR -->
+    <aside class="sidebar" id="writer-sidebar">
+      <div class="sidebar-header">
+        <a href="/writer" title="DO Record" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none;">
+          <img src="/static/assets/dorecord-logo.svg" alt="DO Record" class="logo-img sidebar-logo-img">
+        </a>
+        <span class="badge" style="background-color: var(--brand-blue); color: white; font-size: 0.65rem;">WRITER</span>
+      </div>
+
+      <ul class="sidebar-menu">
+        <li class="sidebar-label">My Desk</li>
+        <li><a href="/writer" class="sidebar-link {% if active_tab == 'dashboard' %}active{% endif %}"><i class="fa-solid fa-gauge-high"></i> My Dashboard</a></li>
+        <li><a href="/writer/articles" class="sidebar-link {% if active_tab == 'my_articles' %}active{% endif %}"><i class="fa-solid fa-newspaper"></i> My Articles</a></li>
+        <li><a href="/writer/articles/create" class="sidebar-link {% if active_tab == 'create' %}active{% endif %}"><i class="fa-solid fa-pen-nib"></i> Write New Story</a></li>
+        <li><a href="/writer/web-stories" class="sidebar-link {% if active_tab == 'web_stories' %}active{% endif %}"><i class="fa-solid fa-bolt"></i> My Web Stories</a></li>
+        <li><a href="/writer/web-stories/create" class="sidebar-link {% if active_tab == 'create_web_story' %}active{% endif %}"><i class="fa-solid fa-plus"></i> Create Web Story</a></li>
+
+        <li class="sidebar-label">Account & Notifications</li>
+        <li><a href="/writer/notifications" class="sidebar-link {% if active_tab == 'notifications' %}active{% endif %}"><i class="fa-solid fa-bell"></i> Feedback & Alerts</a></li>
+        <li><a href="/writer/profile" class="sidebar-link {% if active_tab == 'profile' %}active{% endif %}"><i class="fa-solid fa-id-card"></i> My Profile & Bio</a></li>
+        <li><a href="/writer/security" class="sidebar-link {% if active_tab == 'security' %}active{% endif %}"><i class="fa-solid fa-key"></i> Password & Security</a></li>
+      </ul>
+
+      <div style="padding: 1rem; border-top: 1px solid var(--border-color-dark); font-size: 0.8rem; color: #64748b;">
+        DO Record Staff Portal
+      </div>
+    </aside>
+    <div class="sidebar-backdrop" id="writer-sidebar-backdrop"></div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+      <header class="top-nav-admin">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <button type="button" class="btn btn-outline btn-sm" id="writer-sidebar-toggle" aria-label="Open writer navigation" aria-expanded="false" aria-controls="writer-sidebar">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <a href="/" target="_blank" class="btn btn-outline btn-sm"><i class="fa-solid fa-globe"></i> View Public News Site</a>
+          <a href="/writer/articles/create" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i> New Story</a>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 1.25rem;">
+          <button id="theme-toggle-writer" class="btn btn-outline btn-sm" style="padding: 0.3rem 0.6rem;">
+            <i class="fa-solid fa-moon"></i>
+          </button>
+          
+          <div class="user-profile-btn">
+            <img src="{{ current_user.avatar_url or '/static/images/default_avatar.png' }}" alt="{{ current_user.name }}" style="width: 38px; height: 38px; border-radius: 50%; object-fit: cover; border: 2px solid var(--brand-blue);">
+            <div>
+              <div style="font-weight: 700; font-size: 0.875rem; line-height: 1.1;">{{ current_user.name }}</div>
+              <div style="font-size: 0.7rem; color: var(--text-muted);">Staff Journalist</div>
+            </div>
+            <a href="/logout" class="btn btn-outline btn-sm" style="margin-left: 0.75rem; color: #ef4444; border-color: #ef4444;" title="Sign out">
+              <i class="fa-solid fa-right-from-bracket"></i>
+            </a>
+          </div>
+        </div>
+      </header>
+
+      <div style="padding: 2rem; flex-grow: 1;">
+        {% block content %}{% endblock %}
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const themeBtnWriter = document.getElementById('theme-toggle-writer');
+    if (localStorage.getItem('dorecord_theme') === 'dark') {
+      document.body.classList.add('dark-mode');
+      themeBtnWriter.innerHTML = '<i class="fa-solid fa-sun"></i>';
+    }
+    themeBtnWriter.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      if (document.body.classList.contains('dark-mode')) {
+        localStorage.setItem('dorecord_theme', 'dark');
+        themeBtnWriter.innerHTML = '<i class="fa-solid fa-sun"></i>';
+      } else {
+        localStorage.setItem('dorecord_theme', 'light');
+        themeBtnWriter.innerHTML = '<i class="fa-solid fa-moon"></i>';
+      }
+    });
+    const writerSidebar = document.getElementById('writer-sidebar');
+    const writerToggle = document.getElementById('writer-sidebar-toggle');
+    const writerBackdrop = document.getElementById('writer-sidebar-backdrop');
+    function setWriterSidebar(open) {
+      writerSidebar.classList.toggle('open', open);
+      writerBackdrop.classList.toggle('is-visible', open);
+      writerToggle.setAttribute('aria-expanded', String(open));
+      writerToggle.setAttribute('aria-label', open ? 'Close writer navigation' : 'Open writer navigation');
+    }
+    writerToggle.addEventListener('click', () => setWriterSidebar(!writerSidebar.classList.contains('open')));
+    writerBackdrop.addEventListener('click', () => setWriterSidebar(false));
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && writerSidebar.classList.contains('open')) setWriterSidebar(false);
+    });
+  </script>
+</body>
+</html>

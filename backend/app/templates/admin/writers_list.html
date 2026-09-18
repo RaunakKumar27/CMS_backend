@@ -1,0 +1,121 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Manage Writers & Staff - DO Record Super Admin{% endblock %}
+
+{% block content %}
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+  <div>
+    <h1 style="font-size: 1.8rem; font-weight: 800; font-family: 'Inter', sans-serif;">Writers & Editorial Staff</h1>
+    <p style="color: var(--text-muted); font-size: 0.9rem;">Manage journalist accounts, permissions, account activation status, and activity.</p>
+  </div>
+  <button onclick="showAddWriterModal()" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> Add New Writer</button>
+</div>
+
+<!-- WRITERS GRID / TABLE -->
+<div class="card">
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Writer</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Articles</th>
+          <th>Published</th>
+          <th>Status</th>
+          <th>Joined</th>
+          <th style="text-align: right;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for w in writers %}
+        <tr>
+          <td>
+            <div class="author-inline">
+              <img src="{{ w.avatar_url or '/static/images/default_avatar.png' }}" alt="{{ w.name }}" class="author-avatar" style="width: 36px; height: 36px;">
+              <div>
+                <div style="font-weight: 700;">{{ w.name }}</div>
+                <div style="font-size: 0.75rem; color: var(--text-subtle);">@{{ w.username }}</div>
+              </div>
+            </div>
+          </td>
+          <td>{{ w.email }}</td>
+          <td><span class="badge" style="background:#e2e8f0; color:#334155;">{{ w.role }}</span></td>
+          <td><strong>{{ w.article_count or 0 }}</strong></td>
+          <td><strong style="color: #16a34a;">{{ w.published_count or 0 }}</strong></td>
+          <td>
+            {% if w.is_active %}
+              <span class="badge badge-status-published"><i class="fa-solid fa-check me-1"></i> Active</span>
+            {% else %}
+              <span class="badge badge-status-rejected">Suspended</span>
+            {% endif %}
+          </td>
+          <td style="font-size: 0.8rem; color: var(--text-muted);">{{ w.created_at | strftime("%b %d, %Y") }}</td>
+          <td style="text-align: right; white-space: nowrap;">
+            <form action="/admin/writers/{{ w._id }}/toggle-status" method="POST" style="display: inline-block;">
+              <button type="submit" class="btn {% if w.is_active %}btn-outline{% else %}btn-success{% endif %} btn-sm">
+                {% if w.is_active %}<i class="fa-solid fa-ban"></i> Suspend{% else %}<i class="fa-solid fa-check"></i> Activate{% endif %}
+              </button>
+            </form>
+
+            <form action="/admin/writers/{{ w._id }}/reset-pwd" method="POST" style="display: inline-block;" onsubmit="return confirm('Reset password for {{ w.username }}? Default password will be set to Writer@123456');">
+              <button type="submit" class="btn btn-secondary btn-sm" title="Reset Password"><i class="fa-solid fa-key"></i></button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" style="text-align: center; color: var(--text-muted);">No writers created yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ADD WRITER MODAL -->
+<div class="modal-backdrop" id="add-writer-modal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 style="font-size: 1.1rem; font-family: 'Inter', sans-serif;"><i class="fa-solid fa-user-plus" style="color: var(--brand-red);"></i> Add New Journalist / Writer</h3>
+      <button onclick="hideAddWriterModal()" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+    </div>
+    <form action="/admin/writers" method="POST">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Full Name *</label>
+          <input type="text" name="name" class="form-control" placeholder="e.g. Ananya Roy" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Username *</label>
+          <input type="text" name="username" class="form-control" placeholder="e.g. ananya_politics" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Email Address *</label>
+          <input type="email" name="email" class="form-control" placeholder="ananya@dorecord.com" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Initial Password *</label>
+          <input type="password" name="password" class="form-control" placeholder="At least 8 characters" value="Writer@123456" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Bio / Beat Specialty</label>
+          <textarea name="bio" class="form-control" style="min-height: 70px;" placeholder="e.g. Technology Correspondent reporting on AI and cyber defense..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" onclick="hideAddWriterModal()" class="btn btn-outline">Cancel</button>
+        <button type="submit" class="btn btn-primary">Create Account</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function showAddWriterModal() { document.getElementById('add-writer-modal').classList.add('show'); }
+  function hideAddWriterModal() { document.getElementById('add-writer-modal').classList.remove('show'); }
+  {% if show_create %}showAddWriterModal();{% endif %}
+</script>
+{% endblock %}

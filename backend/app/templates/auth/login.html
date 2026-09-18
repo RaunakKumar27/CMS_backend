@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - DO Record CMS</title>
+  <link rel="icon" type="image/svg+xml" href="/static/assets/dorecord-logo.svg">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/design_system.css">
+  <style>
+    body {
+      background: radial-gradient(circle at top, #1e293b 0%, #090d16 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      color: #f8fafc;
+    }
+    .auth-card {
+      background-color: #111827;
+      border: 1px solid #1f2937;
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 440px;
+      padding: 2.5rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="auth-card">
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <a href="/" title="DO Record" style="display: inline-block; text-decoration: none;">
+        <img src="/static/assets/dorecord-logo.svg" alt="DO Record" class="logo-img login-logo-img">
+      </a>
+      <p style="color: #94a3b8; font-size: 0.875rem; margin-top: 0.5rem;">Newsroom Content Management System</p>
+    </div>
+
+    {% if msg %}
+      <div style="background-color: rgba(34, 197, 94, 0.15); border: 1px solid #16a34a; color: #4ade80; padding: 0.75rem 1rem; border-radius: var(--radius-md); font-size: 0.875rem; margin-bottom: 1.5rem;">
+        <i class="fa-solid fa-circle-check me-1"></i> {{ msg }}
+      </div>
+    {% endif %}
+
+    {% if error %}
+      <div style="background-color: rgba(220, 38, 38, 0.15); border: 1px solid #dc2626; color: #f87171; padding: 0.75rem 1rem; border-radius: var(--radius-md); font-size: 0.875rem; margin-bottom: 1.5rem;">
+        <i class="fa-solid fa-circle-exclamation me-1"></i> {{ error }}
+      </div>
+    {% endif %}
+
+    <form action="/login" method="POST">
+      <input type="hidden" name="next" value="{{ next }}">
+
+      <div class="form-group">
+        <label class="form-label" style="color: #cbd5e1;">Email address or Username</label>
+        <input type="text" name="identity" class="form-control" style="background-color: #1f2937; border-color: #374151; color: white;" placeholder="e.g. admin@dorecord.com or rohit_politics" value="{{ identity if identity else '' }}" required autofocus>
+      </div>
+
+      <div class="form-group">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+          <label class="form-label" style="color: #cbd5e1; margin-bottom: 0;">Password</label>
+          <a href="/forgot-password" style="font-size: 0.8rem; color: var(--brand-red);">Forgot Password?</a>
+        </div>
+        <div style="position: relative;">
+          <input type="password" id="password-input" name="password" class="form-control" style="background-color: #1f2937; border-color: #374151; color: white; padding-right: 2.5rem;" placeholder="Enter account password" required>
+          <button type="button" onclick="togglePasswordVisibility()" style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer;">
+            <i id="pwd-icon" class="fa-solid fa-eye"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group" style="display: flex; align-items: center; gap: 0.5rem;">
+        <input type="checkbox" id="remember_me" name="remember_me" value="true" style="width: 16px; height: 16px; accent-color: var(--brand-red);">
+        <label for="remember_me" style="font-size: 0.85rem; color: #94a3b8; cursor: pointer; user-select: none;">Keep me signed in for 14 days</label>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.75rem; font-size: 1rem; margin-top: 0.5rem;">
+        <i class="fa-solid fa-right-to-bracket"></i> Sign In to CMS
+      </button>
+    </form>
+
+    <div style="margin-top: 1.5rem; text-align: center; font-size: 0.85rem; color: #94a3b8;">
+      Want to write for DO Record? <a href="/become-a-writer" style="color: var(--brand-red); font-weight: 700;">Become a Writer</a>
+    </div>
+
+  </div>
+
+  <script>
+    function togglePasswordVisibility() {
+      const pwd = document.getElementById('password-input');
+      const icon = document.getElementById('pwd-icon');
+      if (pwd.type === 'password') {
+        pwd.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+      } else {
+        pwd.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+      }
+    }
+  </script>
+</body>
+</html>

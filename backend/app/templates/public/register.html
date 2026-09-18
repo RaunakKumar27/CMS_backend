@@ -1,0 +1,236 @@
+{% extends "public/base_public.html" %}
+
+{% block title %}Become a Writer - DO Record Media Network{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 3rem 0; max-width: 860px;">
+  
+  <div style="background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 3rem; box-shadow: var(--shadow-md);">
+    
+    <div style="text-align: center; margin-bottom: 2.5rem;">
+      <span class="badge badge-cat" style="font-size: 0.85rem; padding: 0.3rem 0.85rem; margin-bottom: 0.75rem;">JOIN THE NEWSROOM</span>
+      <h1 style="font-size: 2.25rem; font-weight: 800; font-family: 'Inter', sans-serif; margin-bottom: 0.5rem;">
+        Apply to Become a DO Record Writer
+      </h1>
+      <p style="color: var(--text-muted); font-size: 0.95rem; max-width: 600px; margin: 0 auto;">
+        Submit your journalist profile, beat specialty, and writing portfolio for review by our editorial board.
+      </p>
+    </div>
+
+    {% if error %}
+      <div style="background-color: rgba(220, 38, 38, 0.15); border: 1px solid #dc2626; color: #f87171; padding: 0.85rem 1.25rem; border-radius: var(--radius-md); font-size: 0.9rem; margin-bottom: 2rem;">
+        <i class="fa-solid fa-circle-exclamation me-1"></i> {{ error }}
+      </div>
+    {% endif %}
+
+    <form action="/become-a-writer" method="POST" enctype="multipart/form-data" id="writer-reg-form">
+      
+      <!-- STEP 1: PERSONAL INFORMATION -->
+      <div style="margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem;">
+        <h3 style="font-size: 1.1rem; font-family: 'Inter', sans-serif; font-weight: 700; margin-bottom: 1.25rem; color: var(--brand-red);">
+          1. Personal Information
+        </h3>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+          <div class="form-group">
+            <label class="form-label">Full Name *</label>
+            <input type="text" name="full_name" class="form-control" placeholder="e.g. Vikramaditya Singh" value="{{ form_data.full_name if form_data else '' }}" required autofocus>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Email Address *</label>
+            <input type="email" name="email" class="form-control" placeholder="vikram@example.com" value="{{ form_data.email if form_data else '' }}" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Phone Number</label>
+            <input type="tel" name="phone" class="form-control" placeholder="+91 98765 43210" value="{{ form_data.phone if form_data else '' }}">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">City & Country</label>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+              <input type="text" name="city" class="form-control" placeholder="Mumbai" value="{{ form_data.city if form_data else '' }}">
+              <input type="text" name="country" class="form-control" placeholder="India" value="{{ form_data.country if form_data else 'India' }}">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2: PROFESSIONAL EXPERIENCE -->
+      <div style="margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem;">
+        <h3 style="font-size: 1.1rem; font-family: 'Inter', sans-serif; font-weight: 700; margin-bottom: 1.25rem; color: var(--brand-red);">
+          2. Professional & Writing Background
+        </h3>
+
+        <div class="form-group">
+          <label class="form-label">Short Biography *</label>
+          <textarea name="bio" class="form-control" style="min-height: 80px;" placeholder="Tell us about your background, editorial voice, and expertise..." required>{{ form_data.bio if form_data else '' }}</textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Areas of Interest / Beats *</label>
+          <input type="text" name="areas_of_interest" class="form-control" placeholder="e.g. Technology, AI, Geopolitics, Stock Markets" value="{{ form_data.areas_of_interest if form_data else '' }}" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Previous Writing Experience</label>
+          <textarea name="writing_experience" class="form-control" style="min-height: 70px;" placeholder="List publications, blogs, or news outlets you have written for...">{{ form_data.writing_experience if form_data else '' }}</textarea>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+          <div class="form-group">
+            <label class="form-label">Portfolio URL</label>
+            <input type="url" name="portfolio_url" class="form-control" placeholder="https://myportfolio.com" value="{{ form_data.portfolio_url if form_data else '' }}">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">LinkedIn / Social Profile</label>
+            <input type="url" name="linkedin_url" class="form-control" placeholder="https://linkedin.com/in/username" value="{{ form_data.linkedin_url if form_data else '' }}">
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3: DIRECT PROFILE PHOTO UPLOAD WITH NATIVE FILE PICKER -->
+      <div style="margin-bottom: 2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1.5rem;">
+        <h3 style="font-size: 1.1rem; font-family: 'Inter', sans-serif; font-weight: 700; margin-bottom: 0.35rem; color: var(--brand-red);">
+          3. Profile Photo
+        </h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+          Select your journalist headshot photo directly from your device (JPG, PNG, WebP up to 5 MB).
+        </p>
+
+        <!-- Native Hidden File Input -->
+        <input type="file" id="photo-file-input" name="photo_file" accept="image/jpeg,image/png,image/webp" style="display: none;" onchange="handlePhotoSelect(event)">
+
+        <!-- Upload Dropzone Container -->
+        <div id="upload-dropzone" style="border: 2px dashed var(--border-color); border-radius: var(--radius-lg); padding: 2.25rem; text-align: center; background-color: var(--bg-surface-elevated); cursor: pointer; transition: all 0.2s ease;" onclick="document.getElementById('photo-file-input').click()">
+          <div style="font-size: 2.25rem; margin-bottom: 0.5rem; line-height: 1;">📷</div>
+          <h4 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.25rem;">Upload Photo</h4>
+          <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Choose from your device or drag & drop</p>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); document.getElementById('photo-file-input').click()">
+            <i class="fa-solid fa-folder-open me-1"></i> Choose Photo
+          </button>
+          <div style="font-size: 0.75rem; color: var(--text-subtle); margin-top: 0.75rem;">JPG, JPEG, PNG, or WebP • Max 5 MB</div>
+        </div>
+
+        <!-- Live Photo Preview Box (Hidden until image selected) -->
+        <div id="photo-preview-container" style="display: none; text-align: center; background-color: var(--bg-surface-elevated); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.75rem;">
+          <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; margin-bottom: 1rem;">Photo Preview</div>
+          <div style="width: 130px; height: 130px; border-radius: 50%; overflow: hidden; margin: 0 auto 1rem auto; border: 3px solid var(--brand-red); box-shadow: var(--shadow-md);">
+            <img id="photo-preview-img" src="" alt="Profile Preview" style="width: 100%; height: 100%; object-fit: cover;">
+          </div>
+          <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-main); margin-bottom: 1rem;" id="photo-filename">Selected Image</div>
+          <div style="display: flex; gap: 0.75rem; justify-content: center;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('photo-file-input').click()"><i class="fa-solid fa-arrows-rotate me-1"></i> Change Photo</button>
+            <button type="button" class="btn btn-danger btn-sm" onclick="removePhoto()"><i class="fa-solid fa-trash me-1"></i> Remove</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 4: ACCOUNT SECURITY -->
+      <div style="margin-bottom: 2rem;">
+        <h3 style="font-size: 1.1rem; font-family: 'Inter', sans-serif; font-weight: 700; margin-bottom: 1.25rem; color: var(--brand-red);">
+          4. Account Password
+        </h3>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+          <div class="form-group">
+            <label class="form-label">Password *</label>
+            <input type="password" name="password" class="form-control" placeholder="At least 8 characters" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Confirm Password *</label>
+            <input type="password" name="confirm_password" class="form-control" placeholder="Re-enter password" required>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.85rem; font-size: 1.05rem;">
+        <i class="fa-solid fa-paper-plane me-1"></i> Submit Writer Application
+      </button>
+
+    </form>
+
+    <div style="text-align: center; margin-top: 1.5rem; font-size: 0.875rem; color: var(--text-muted);">
+      Already have an account? <a href="/login" style="color: var(--brand-red); font-weight: 700;">Sign in here</a>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function processFile(file) {
+    if (!file) return;
+
+    // Validate size (5 MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Image file is too large. Please select a photo smaller than 5 MB.");
+      document.getElementById('photo-file-input').value = "";
+      return;
+    }
+
+    // Validate type (JPG, PNG, WebP)
+    const validTypes = ["image/jpeg", "image/png", "image/webp"];
+    if (!validTypes.includes(file.type.toLowerCase())) {
+      alert("Unsupported file format. Please upload JPG, PNG, or WebP.");
+      document.getElementById('photo-file-input').value = "";
+      return;
+    }
+
+    // Live Preview
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById('photo-preview-img').src = e.target.result;
+      document.getElementById('photo-filename').innerText = file.name + " (" + (file.size / (1024 * 1024)).toFixed(2) + " MB)";
+      document.getElementById('upload-dropzone').style.display = 'none';
+      document.getElementById('photo-preview-container').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function handlePhotoSelect(event) {
+    const file = event.target.files[0];
+    processFile(file);
+  }
+
+  function removePhoto() {
+    document.getElementById('photo-file-input').value = "";
+    document.getElementById('photo-preview-img').src = "";
+    document.getElementById('photo-preview-container').style.display = 'none';
+    document.getElementById('upload-dropzone').style.display = 'block';
+  }
+
+  // Drag and drop support
+  const dropzone = document.getElementById('upload-dropzone');
+  if (dropzone) {
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropzone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.style.borderColor = 'var(--brand-red)';
+        dropzone.style.backgroundColor = 'rgba(229, 9, 20, 0.08)';
+      }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropzone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.style.borderColor = 'var(--border-color)';
+        dropzone.style.backgroundColor = 'var(--bg-surface-elevated)';
+      }, false);
+    });
+
+    dropzone.addEventListener('drop', (e) => {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      if (files && files.length > 0) {
+        document.getElementById('photo-file-input').files = files;
+        processFile(files[0]);
+      }
+    }, false);
+  }
+</script>
+{% endblock %}

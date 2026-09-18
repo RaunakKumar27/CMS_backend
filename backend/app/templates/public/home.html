@@ -1,0 +1,156 @@
+{% extends "public/base_public.html" %}
+
+{% block title %}DO Record - Leading Digital Media & News Channel{% endblock %}
+
+{% block content %}
+<div class="container">
+  
+  <!-- HERO SECTION & TRENDING SIDEBAR -->
+  {% if hero_article %}
+  <div class="hero-news-grid">
+    <!-- Featured Hero Card -->
+    <div class="hero-featured-card">
+      <img src="{{ hero_article.featured_image }}" alt="{{ hero_article.title }}" class="hero-featured-img">
+      <div class="hero-overlay">
+        <span class="badge badge-cat">{{ hero_article.category_name }}</span>
+        {% if hero_article.is_breaking %}
+          <span class="badge" style="background-color: var(--brand-red); color: white; margin-left: 0.5rem;"><i class="fa-solid fa-bolt"></i> BREAKING</span>
+        {% endif %}
+        <h1><a href="/article/{{ hero_article.slug }}" style="color: white; text-decoration: none;">{{ hero_article.title }}</a></h1>
+        <p>{{ hero_article.excerpt }}</p>
+        <div class="author-inline" style="color: #cbd5e1; font-size: 0.85rem;">
+          <img src="{{ hero_article.author_avatar }}" alt="{{ hero_article.author_name }}" class="author-avatar">
+          <span>By <strong>{{ hero_article.author_name }}</strong></span>
+          <span style="margin: 0 0.5rem;">•</span>
+          <span><i class="fa-regular fa-clock me-1"></i> {{ hero_article.published_at | strftime }}</span>
+          <span style="margin: 0 0.5rem;">•</span>
+          <span><i class="fa-regular fa-eye me-1"></i> {{ hero_article.views_count }} views</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Trending Headlines Panel -->
+    <div style="background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.5rem; display: flex; flex-direction: column;">
+      <h3 style="font-size: 1.1rem; border-bottom: 2px solid var(--brand-red); padding-bottom: 0.5rem; margin-bottom: 1rem; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: space-between;">
+        <span><i class="fa-solid fa-fire" style="color: var(--brand-red);"></i> TRENDING NOW</span>
+        <a href="/trending" style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">View All</a>
+      </h3>
+
+      <div style="display: flex; flex-direction: column; gap: 1rem; flex-grow: 1;">
+        {% for item in trending_articles[:5] %}
+        <div style="display: flex; gap: 0.75rem; align-items: flex-start; border-bottom: 1px solid var(--border-color); padding-bottom: 0.75rem;">
+          <span style="font-size: 1.4rem; font-weight: 900; color: var(--brand-red); min-width: 24px;">0{{ loop.index }}</span>
+          <div>
+            <span class="badge badge-cat" style="font-size: 0.65rem; padding: 0.1rem 0.4rem;">{{ item.category_name }}</span>
+            <h4 style="font-size: 0.9rem; font-weight: 700; margin: 0.2rem 0; font-family: 'Inter', sans-serif; line-height: 1.3;">
+              <a href="/article/{{ item.slug }}">{{ item.title }}</a>
+            </h4>
+            <span style="font-size: 0.75rem; color: var(--text-subtle);"><i class="fa-regular fa-eye me-1"></i> {{ item.views_count }} views</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if web_stories %}
+  <!-- WEB STORIES -->
+  <section style="margin: 3rem 0;">
+    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 1.25rem;">
+      <h2 style="font-size: 1.5rem; margin: 0;">WEB <span style="color: var(--brand-red);">STORIES</span></h2>
+      <a href="/web-stories" class="btn btn-outline btn-sm">View all <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
+    <div class="web-stories-row" aria-label="Web Stories">
+      {% for story in web_stories %}
+      <a href="/web-stories/story/{{ story.slug }}" class="web-story-card" aria-label="Read {{ story.title }}">
+        <img src="{{ story.featured_image }}" alt="{{ story.title }}" loading="lazy">
+        <span class="web-story-gradient"></span>
+        <span class="web-story-progress" aria-hidden="true"></span>
+        <span class="web-story-copy">
+          <span class="web-story-category">{{ story.category_name }}</span>
+          <strong>{{ story.title }}</strong>
+        </span>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- LATEST NEWS SECTION -->
+  <section style="margin: 3rem 0;">
+    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--border-color); padding-bottom: 0.75rem; margin-bottom: 1.5rem;">
+      <h2 style="font-size: 1.5rem; position: relative;">
+        LATEST <span style="color: var(--brand-red);">NEWS</span>
+      </h2>
+      <a href="/search" class="btn btn-outline btn-sm">Explore All News <i class="fa-solid fa-arrow-right"></i></a>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+      {% for article in latest_articles %}
+      <div class="card article-card">
+        <div class="article-card-img-wrapper">
+          <img src="{{ article.featured_image }}" alt="{{ article.title }}" class="article-card-img">
+          <span class="badge badge-cat" style="position: absolute; top: 0.75rem; left: 0.75rem; background-color: rgba(0,0,0,0.75); color: white; backdrop-filter: blur(4px);">
+            {{ article.category_name }}
+          </span>
+        </div>
+        <div class="article-card-body">
+          <h3 class="article-card-title">
+            <a href="/article/{{ article.slug }}">{{ article.title }}</a>
+          </h3>
+          <p class="article-card-excerpt">{{ article.excerpt }}</p>
+
+          <div class="article-card-meta">
+            <div class="author-inline">
+              <img src="{{ article.author_avatar }}" alt="{{ article.author_name }}" class="author-avatar">
+              <span>{{ article.author_name }}</span>
+            </div>
+            <span>{{ article.published_at | strftime }}</span>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <p style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 3rem 0;">No published news articles found.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- CATEGORY SECTIONS -->
+  {% for cat_data in category_sections %}
+  {% if cat_data.articles %}
+  <section style="margin: 3.5rem 0;">
+    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid var(--brand-red); padding-bottom: 0.5rem; margin-bottom: 1.5rem;">
+      <h3 style="font-size: 1.3rem; text-transform: uppercase; font-family: 'Inter', sans-serif; font-weight: 800;">
+        <span style="color: var(--brand-red);">///</span> {{ cat_data.category.name }}
+      </h3>
+      <a href="/category/{{ cat_data.category.slug }}" style="font-size: 0.85rem; font-weight: 700; color: var(--brand-red);">
+        More in {{ cat_data.category.name }} <i class="fa-solid fa-angle-right me-1"></i>
+      </a>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem;">
+      {% for article in cat_data.articles %}
+      <div class="card article-card">
+        <div class="article-card-img-wrapper" style="aspect-ratio: 16/9;">
+          <img src="{{ article.featured_image }}" alt="{{ article.title }}" class="article-card-img">
+        </div>
+        <div class="article-card-body" style="padding: 1rem;">
+          <h4 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 0.5rem; line-height: 1.3; font-family: 'Merriweather', serif;">
+            <a href="/article/{{ article.slug }}">{{ article.title }}</a>
+          </h4>
+          <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0.75rem;">{{ article.excerpt | truncate_words(18) }}</p>
+          <div class="article-card-meta">
+            <span>By {{ article.author_name }}</span>
+            <span>{{ article.published_at | strftime }}</span>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+  {% endfor %}
+
+</div>
+{% endblock %}

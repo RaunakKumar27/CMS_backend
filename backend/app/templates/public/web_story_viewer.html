@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <title>{{ story.seo_title or story.title }} | DO Record Web Story</title>
+    <meta name="description" content="{{ story.seo_description or story.description }}">
+    <link rel="canonical" href="{{ request.url }}">
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="{{ story.seo_title or story.title }}">
+    <meta property="og:description" content="{{ story.seo_description or story.description }}">
+    <meta property="og:image"
+        content="{{ request.url_for('static', path=story.cover_image.replace('/static/', '')) if story.cover_image.startswith('/static/') else story.cover_image }}">
+    <link rel="icon" type="image/svg+xml" href="/static/assets/dorecord-logo.svg">
+    <link rel="stylesheet" href="/static/css/design_system.css">
+    <script
+        type="application/ld+json">{{ {'@context':'https://schema.org','@type':'NewsArticle','headline':story.title,'image':[story.cover_image],'datePublished':story.published_at or '','author':{'@type':'Person','name':story.author_name}}|tojson }}</script>
+</head>
+
+<body class="story-viewer-body">
+    <main id="story-viewer" class="story-viewer" aria-label="{{ story.title }}">
+        <div class="story-shell">
+            <div class="story-progress" id="progress"></div>
+            <header class="story-viewer-top"><a href="/web-stories" aria-label="Close Web Story">×</a><img
+                    src="/static/assets/dorecord-logo.svg" alt="DO Record"><button id="share"
+                    aria-label="Share this story">↗</button></header>
+            <div id="slides"></div><button class="story-nav story-prev" id="previous"
+                aria-label="Previous story page">‹</button><button class="story-nav story-next" id="next"
+                aria-label="Next story page">›</button>
+        </div>
+    </main>
+    <div id="toast" class="story-toast" role="status"></div>
+    <script type="application/json" id="story-data">{{ {'story': story, 'related': related_article}|tojson }}</script>
+    <script>
+        const viewerData = JSON.parse(document.getElementById('story-data').textContent);
+        const story = viewerData.story;
+        const related = viewerData.related;
+        const slides = document.getElementById('slides');
+        const progress = document.getElementById('progress');
+        const shell = document.querySelector('.story-shell');
+        const toast = document.getElementById('toast');
+        let index = 0;
+        let timer = null;
+        let held = false;
+        let startX = 0;
+        let completed = false;
+
+        function esc(value) {
+            return String(value ?? '').replace(/[&<>"']/g, character => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[character]));
+        }
+
+        function number(value, fallback, minimum, maximum) {
+            const parsed = Number(value);
+            return Number.isFinite(parsed) ? Math.max(minimum, Math.min(maximum, parsed)) : fallback;
+        }
+
+        function track(event) {
+            fetch(`${location.pathname}/analytics`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ event, page: index + 1 }),
+                keepalive: true
+            }).catch(() => {});
+        }
+
+        function reset() {
+            clearTimeout(timer);
+            if (!held && story.pages[index]) {
+                const duration = number(story.pages[index].duration, 5, 2, 30);
+                timer = setTimeout(() => go(1), duration * 1000);
+            }
+        }
+
+        function draw() {
+            const page = story.pages[index];
+            if (!page) return;
+            const position = ['top', 'center', 'bottom'].includes(page.text_position) ? page.text_position : 'bottom';
+            const alignment = ['left', 'center', 'right'].includes(page.text_alignment) ? page.text_alignment : 'left';
+            const size = ['small', 'medium', 'large'].includes(page.text_size) ? page.text_size : 'medium';
+            const x = number(page.background_position_x, 50, 0, 100);
+            const y = number(page.background_position_y, 50, 0, 100);
+            const zoom = number(page.zoom, 100, 100, 180);
+            const cta = page.cta_text && page.cta_url
+                ? `<a href="${esc(page.cta_url)}" class="story-cta">${esc(page.cta_text)} &rarr;</a>` : '';
+            const relatedLink = index === story.pages.length - 1 && related
+                ? `<a href="/article/${esc(related.slug)}" class="story-cta">READ FULL ARTICLE &rarr;</a>` : '';
+            slides.innerHTML = `<section class="story-slide text-${position} align-${alignment} size-${size}">
+                <img src="${esc(page.image)}" alt="" style="object-position:${x}% ${y}%;transform:scale(${zoom / 100})">
+                <div class="story-slide-overlay ${page.overlay === false ? 'off' : ''}"></div>
+                <div class="story-slide-copy"><span>${esc(story.category_name)}</span>
+                    <h1>${esc(page.headline || story.title)}</h1><p>${esc(page.description)}</p>${cta}${relatedLink}
+                </div></section>`;
+            progress.innerHTML = story.pages.map((_, pageIndex) =>
+                `<i class="${pageIndex < index ? 'done' : pageIndex === index ? 'current' : ''}"></i>`).join('');
+            track('page_viewed');
+            reset();
+        }
+
+        function go(direction) {
+            const target = index + direction;
+            if (target < 0 || target >= story.pages.length) {
+                if (target >= story.pages.length && !completed) {
+                    completed = true;
+                    track('completed');
+                }
+                clearTimeout(timer);
+                return;
+            }
+            completed = false;
+            index = target;
+            draw();
+        }
+
+        function endPointer(event) {
+            if (!held) return;
+            const distance = event.clientX - startX;
+            held = false;
+            if (Math.abs(distance) > 45) go(distance < 0 ? 1 : -1);
+            else if (!event.target.closest('a,button')) go(event.clientX > innerWidth / 2 ? 1 : -1);
+            reset();
+        }
+
+        document.getElementById('next').onclick = () => go(1);
+        document.getElementById('previous').onclick = () => go(-1);
+        document.addEventListener('keydown', event => {
+            if (event.key === 'ArrowRight') go(1);
+            if (event.key === 'ArrowLeft') go(-1);
+        });
+        shell.addEventListener('pointerdown', event => {
+            held = true;
+            startX = event.clientX;
+            shell.setPointerCapture?.(event.pointerId);
+            clearTimeout(timer);
+        });
+        shell.addEventListener('pointerup', endPointer);
+        shell.addEventListener('pointercancel', () => { held = false; reset(); });
+        document.getElementById('share').onclick = async () => {
+            track('share_clicked');
+            try {
+                if (navigator.share) await navigator.share({ title: story.title, url: location.href });
+                else if (navigator.clipboard) {
+                    await navigator.clipboard.writeText(location.href);
+                    toast.textContent = 'Link copied';
+                    setTimeout(() => { toast.textContent = ''; }, 2000);
+                }
+            } catch (error) {
+                if (error.name !== 'AbortError') toast.textContent = 'Unable to share';
+            }
+        };
+
+        story.pages = Array.isArray(story.pages) ? story.pages : [];
+        if (story.pages.length) {
+            track('opened');
+            draw();
+        } else {
+            slides.textContent = 'This story has no pages.';
+        }
+    </script>
+</body>
+
+</html>

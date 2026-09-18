@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>First-Run Setup - DO Record CMS</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="/static/css/design_system.css">
+  <style>
+    body { background: radial-gradient(circle at top, #1e293b 0%, #090d16 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem; color: #f8fafc; }
+    .auth-card { background-color: #111827; border: 1px solid #1f2937; border-radius: var(--radius-lg); width: 100%; max-width: 500px; padding: 2.5rem; }
+  </style>
+</head>
+<body>
+
+  <div class="auth-card">
+    <div style="text-align: center; margin-bottom: 2rem;">
+      <a href="/" class="brand-logo brand-logo-font" style="color: white; font-size: 2.2rem; justify-content: center;">
+        DO <span style="color: var(--brand-red);">RECORD</span><span class="brand-dot"></span>
+      </a>
+      <h2 style="font-size: 1.25rem; font-family: 'Inter', sans-serif; color: white; margin-top: 0.75rem;">Initial CMS Setup Wizard</h2>
+      <p style="color: #94a3b8; font-size: 0.85rem;">Configure the primary Super Admin account for DO Record newsroom.</p>
+    </div>
+
+    {% if error %}
+      <div style="background-color: rgba(220, 38, 38, 0.15); border: 1px solid #dc2626; color: #f87171; padding: 0.75rem; border-radius: var(--radius-md); font-size: 0.875rem; margin-bottom: 1.25rem;">
+        {{ error }}
+      </div>
+    {% endif %}
+
+    <form action="/setup" method="POST">
+      <div class="form-group">
+        <label class="form-label" style="color: #cbd5e1;">Full Name</label>
+        <input type="text" name="name" class="form-control" style="background-color: #1f2937; border-color: #374151; color: white;" placeholder="e.g. Editor in Chief" value="{{ name if name else '' }}" required autofocus>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" style="color: #cbd5e1;">Admin Username</label>
+        <input type="text" name="username" class="form-control" style="background-color: #1f2937; border-color: #374151; color: white;" placeholder="e.g. admin" value="{{ username if username else '' }}" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" style="color: #cbd5e1;">Admin Email</label>
+        <input type="email" name="email" class="form-control" style="background-color: #1f2937; border-color: #374151; color: white;" placeholder="admin@dorecord.com" value="{{ email if email else '' }}" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" style="color: #cbd5e1;">Strong Master Password</label>
+        <input type="password" name="password" class="form-control" style="background-color: #1f2937; border-color: #374151; color: white;" placeholder="At least 8 characters" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" style="color: #cbd5e1;">Confirm Master Password</label>
+        <input type="password" name="confirm_password" class="form-control" style="background-color: #1f2937; border-color: #374151; color: white;" placeholder="Re-enter password" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%; padding: 0.75rem; font-size: 1rem; margin-top: 0.5rem;">
+        Initialize Super Admin & Lock Setup
+      </button>
+    </form>
+  </div>
+
+</body>
+</html>

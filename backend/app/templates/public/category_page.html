@@ -1,0 +1,56 @@
+{% extends "public/base_public.html" %}
+
+{% block title %}{{ category.name }} News - DO Record{% endblock %}
+
+{% block content %}
+<div class="container" style="padding-top: 1.25rem;">
+  
+  <!-- Category Header Banner -->
+  <div style="background-color: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 2rem; margin-bottom: 2.5rem; display: flex; align-items: center; justify-content: space-between;">
+    <div>
+      <span class="badge badge-cat" style="font-size: 0.85rem; padding: 0.25rem 0.75rem;">CATEGORY DESK</span>
+      <h1 style="font-size: 2.25rem; margin: 0.5rem 0; font-family: 'Inter', sans-serif; font-weight: 800;">
+        {{ category.name }}
+      </h1>
+      <p style="color: var(--text-muted); font-size: 1rem; max-width: 700px;">
+        {{ category.description or 'All latest news and reports covering ' ~ category.name ~ '.' }}
+      </p>
+    </div>
+
+    {% if category.image_url %}
+    <img src="{{ category.image_url }}" alt="{{ category.name }}" style="width: 140px; height: 100px; object-fit: cover; border-radius: var(--radius-md);">
+    {% endif %}
+  </div>
+
+  <!-- Articles Grid -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+    {% for article in articles %}
+    <div class="card article-card">
+      <div class="article-card-img-wrapper">
+        <img src="{{ article.featured_image }}" alt="{{ article.title }}" class="article-card-img">
+      </div>
+      <div class="article-card-body">
+        <h3 class="article-card-title">
+          <a href="/article/{{ article.slug }}">{{ article.title }}</a>
+        </h3>
+        <p class="article-card-excerpt">{{ article.excerpt }}</p>
+        <div class="article-card-meta">
+          <div class="author-inline">
+            <img src="{{ article.author_avatar }}" alt="{{ article.author_name }}" class="author-avatar">
+            <span>{{ article.author_name }}</span>
+          </div>
+          <span>{{ article.published_at | strftime }}</span>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 0; color: var(--text-muted);">
+      <i class="fa-regular fa-newspaper" style="font-size: 3rem; margin-bottom: 1rem; color: var(--text-subtle);"></i>
+      <h3>No articles published in {{ category.name }} yet.</h3>
+      <p>Check back soon for breaking stories and analysis.</p>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}
